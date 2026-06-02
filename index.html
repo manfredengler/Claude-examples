@@ -581,7 +581,7 @@ tools = [
 
 <span class="kw">def</span> <span class="fn">execute_tool</span>(name: <span class="fn">str</span>, inputs: <span class="fn">dict</span>) -> <span class="fn">dict</span>:
     <span class="kw">if</span> name == <span class="str">"get_weather"</span>:
-        <span class="kmt"># En producción: llamada real a OpenWeatherMap / WeatherAPI</span>
+        <span class="cmt"># En producción: llamada real a OpenWeatherMap / WeatherAPI</span>
         <span class="kw">return</span> {<span class="str">"temp"</span>: <span class="num">22</span>, <span class="str">"condition"</span>: <span class="str">"soleado"</span>, <span class="str">"humidity"</span>: <span class="num">45</span>}
     <span class="kw">if</span> name == <span class="str">"search_web"</span>:
         <span class="kw">return</span> {<span class="str">"results"</span>: [<span class="str">"Resultado 1…"</span>, <span class="str">"Resultado 2…"</span>]}
