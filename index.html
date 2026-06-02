@@ -265,7 +265,7 @@
   <a href="#skills">          <span class="num c4">04</span> Skills</a>
   <a href="#mcp">             <span class="num c5">05</span> MCP Servers</a>
   <a href="#agents">          <span class="num c6">06</span> Agents</a>
-  <a href="#subagents">       <span class="num c7">07</span> Sub-agents</a>
+  <a href="#subagents">       <span class="num c7">07</span> Agentes Custom</a>
   <a href="#harness">         <span class="num c8">08</span> Harness</a>
   <a href="#combined">        <span class="num c9">09</span> Todo junto</a>
 </nav>
@@ -719,7 +719,7 @@ await server.connect(transport);</code></pre>
       <span class="tag">Paralelismo</span>
     </div>
     <p>
-      Un <strong>agent</strong> es una instancia de Claude lanzada por el agente principal mediante el tool <code>Agent</code>. Corre con su propio contexto, tools y modelo. El padre lo lanza, hace otras cosas (o espera), y recibe el resultado como string cuando termina.
+      Un <strong>agent</strong> es una instancia de Claude lanzada por el agente principal mediante el tool <code>Agent</code>. Corre con su propio contexto, tools y modelo. El padre lo lanza y recibe el resultado al terminar: un string con el último mensaje del agente, o un objeto <code>&#123; path, branch &#125;</code> si se usó <code>isolation: "worktree"</code>.
     </p>
 
     <div class="callout">
@@ -771,13 +771,15 @@ await server.connect(transport);</code></pre>
   ├─ Tiene acceso a los tools configurados (o los del tipo)
   ├─ Trabaja de forma autónoma hasta terminar su turno
   │
-  └─ Devuelve al padre: su último mensaje de texto (string)
+  └─ Devuelve al padre:
+       • string  → su último mensaje de texto (caso normal)
+       • { path, branch } → si se usó isolation: "worktree"
+                            y el agente hizo cambios en disco
 
 IMPORTANTE:
   - El agente NO ve el historial de conversación del padre
   - El padre NO ve los tool calls intermedios del agente
-  - Solo se comparte el resultado final (el último mensaje)
-  - Para continuar un agente en background: SendMessage({to: id})</code></pre>
+  - Solo se comparte el resultado final</code></pre>
     </div>
 
     <!-- Paralelo -->
@@ -859,10 +861,8 @@ Agent({
 });
 
 // El padre continúa trabajando...
-// Cuando el agente termina, llega una notificación automática.
-
-// Para continuar o hacer follow-up a ese agente:
-// SendMessage({ to: "nombre-del-agente", message: "¿terminaste?" })</code></pre>
+// Cuando el agente termina, llega una notificación automática
+// con su resultado — el padre puede actuar sobre él en ese momento.</code></pre>
     </div>
 
     <!-- Escribir un buen prompt -->
@@ -907,7 +907,7 @@ description: >
 
 # OPCIONAL: lista de tools permitidos (omitir = todos los tools)
 # Built-in disponibles: Bash, Read, Write, Edit, Agent,
-#   WebSearch, WebFetch, TodoRead, TodoWrite
+#   WebSearch, WebFetch
 tools:
   - Read
   - Bash
