@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claude – Conceptos y Ejemplos Reales</title>
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f1117;
+      --surface:  #1a1d27;
+      --border:   #2d3148;
+      --accent:   #7c5cfc;
+      --accent2:  #c678dd;
+      --green:    #56d364;
+      --orange:   #e5a550;
+      --red:      #f47067;
+      --blue:     #58a6ff;
+      --cyan:     #39d0d8;
+      --text:     #e2e4f0;
+      --muted:    #8b90ad;
+      --tag-bg:   #252840;
+      --code-bg:  #13151f;
+      --radius:   12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding-bottom: 4rem;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #1a1040 0%, #0f1117 60%);
+      border-bottom: 1px solid var(--border);
+      padding: 3.5rem 1.5rem 2.5rem;
+      text-align: center;
+    }
+    .hero .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero h1 {
+      margin-top: .6rem;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 700;
+    }
+    .hero p {
+      margin-top: .7rem;
+      color: var(--muted);
+      max-width: 640px;
+      margin-inline: auto;
+    }
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      justify-content: center;
+      margin-top: 1.4rem;
+    }
+    .badge {
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: .25rem .85rem;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--accent);
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+      text-decoration: none;
+    }
+    .badge:hover { background: #2d3060; border-color: var(--accent); }
+
+    /* ── Layout ── */
+    .container { max-width: 900px; margin-inline: auto; padding: 0 1.25rem; }
+
+    /* ── Section cards ── */
+    .section {
+      margin-top: 3rem;
+      scroll-margin-top: 4rem;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      margin-bottom: 1.2rem;
+    }
+    .section-icon {
+      font-size: 1.5rem;
+      width: 2.4rem;
+      height: 2.4rem;
+      display: grid;
+      place-items: center;
+      background: var(--tag-bg);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+    .section-header .tag {
+      margin-left: auto;
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: .2rem .75rem;
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      flex-shrink: 0;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .card-body { padding: 1.25rem 1.4rem; }
+    .card-body p { color: var(--muted); font-size: .93rem; margin-bottom: 1rem; }
+    .card-body p:last-child { margin-bottom: 0; }
+
+    /* ── Code blocks ── */
+    .code-wrap {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-top: .75rem;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      background: #0d0f1a;
+      padding: .5rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .code-header .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+    .code-header .filename {
+      margin-left: .3rem;
+      font-size: .78rem;
+      color: var(--muted);
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+    }
+    .copy-btn {
+      margin-left: auto;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: .2rem .6rem;
+      font-size: .72rem;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .copy-btn:hover { background: var(--tag-bg); color: var(--text); }
+    .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+    pre {
+      background: var(--code-bg);
+      padding: 1.1rem 1.3rem;
+      overflow-x: auto;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: .83rem;
+      line-height: 1.7;
+      tab-size: 2;
+    }
+    /* syntax colours */
+    .kw  { color: #c678dd; }
+    .str { color: #98c379; }
+    .num { color: #d19a66; }
+    .cmt { color: #5c6370; font-style: italic; }
+    .fn  { color: #61afef; }
+    .var { color: #e06c75; }
+    .prop{ color: #abb2bf; }
+    .key { color: var(--accent2); }
+    .val { color: var(--green); }
+    .op  { color: #56b6c2; }
+
+    /* ── Interactive demo ── */
+    .demo-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      margin-top: .75rem;
+    }
+    .demo-box label { font-size: .82rem; color: var(--muted); display: block; margin-bottom: .4rem; }
+    .demo-box input, .demo-box select, .demo-box textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: .5rem .75rem;
+      font-size: .87rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .demo-box input:focus, .demo-box textarea:focus { border-color: var(--accent); }
+    .demo-box textarea { resize: vertical; min-height: 72px; }
+    .demo-row { display: flex; gap: .5rem; margin-top: .5rem; }
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: .5rem 1.1rem;
+      font-size: .87rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .btn-ghost:hover { background: var(--tag-bg); color: var(--text); }
+    .output-box {
+      margin-top: .65rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .7rem 1rem;
+      font-size: .84rem;
+      color: var(--green);
+      font-family: 'Cascadia Code', monospace;
+      white-space: pre-wrap;
+      min-height: 2.4rem;
+      display: none;
+    }
+    .output-box.visible { display: block; }
+
+    /* ── Concept grid ── */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: .75rem;
+    }
+    .concept-card {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .concept-card .icon { font-size: 1.3rem; margin-bottom: .4rem; }
+    .concept-card h4 { font-size: .9rem; font-weight: 700; margin-bottom: .25rem; }
+    .concept-card p  { font-size: .8rem; color: var(--muted); }
+
+    /* ── Flow diagram ── */
+    .flow {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: .4rem;
+      margin: .8rem 0;
+      font-size: .84rem;
+    }
+    .flow-node {
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: .3rem .75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .flow-arrow { color: var(--muted); font-size: 1rem; }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: .3rem; border-bottom: 1px solid var(--border); padding-bottom: .5rem; margin-bottom: 1rem; }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      padding: .35rem .8rem;
+      font-size: .84rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background .15s, color .15s;
+    }
+    .tab-btn.active { background: var(--tag-bg); color: var(--text); }
+    .tab-btn:hover:not(.active) { background: var(--tag-bg); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Alert ── */
+    .alert {
+      display: flex;
+      gap: .7rem;
+      background: #1e2035;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 7px;
+      padding: .75rem 1rem;
+      font-size: .86rem;
+      color: var(--muted);
+      margin-top: .75rem;
+    }
+    .alert .icon { flex-shrink: 0; }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 4rem;
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 1.25rem;
+      text-align: center;
+      font-size: .82rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════ -->
+<header class="hero">
+  <div class="logo">✦ Claude</div>
+  <h1>Conceptos y Ejemplos Reales</h1>
+  <p>Una referencia interactiva de los bloques fundamentales del ecosistema Claude: desde herramientas y comandos hasta agentes autónomos y harnesses de prueba.</p>
+  <nav class="badge-row" aria-label="Secciones">
+    <a class="badge" href="#skills">Skills</a>
+    <a class="badge" href="#tools">Tools</a>
+    <a class="badge" href="#commands">Commands</a>
+    <a class="badge" href="#hooks">Hooks</a>
+    <a class="badge" href="#agents">Agents</a>
+    <a class="badge" href="#subagents">Sub-Agents</a>
+    <a class="badge" href="#harness">Harness</a>
+    <a class="badge" href="#mcp">MCP</a>
+  </nav>
+</header>
+
+<main class="container">
+
+<!-- ════════════════════════════════════════════
+     1. SKILLS
+════════════════════════════════════════════ -->
+<section class="section" id="skills">
+  <div class="section-header">
+    <div class="section-icon">🧩</div>
+    <h2>Skills</h2>
+    <span class="tag">Capacidades</span>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <p>Una <strong>Skill</strong> es una capacidad reutilizable que extiende lo que Claude puede hacer. Se declara en el contexto del sistema y Claude puede invocarla durante la conversación. En el entorno de GitHub Copilot, las skills aparecen en un bloque <code>&lt;available_skills&gt;</code>.</p>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'skills-decl')">Declaración</button>
+        <button class="tab-btn" onclick="switchTab(this,'skills-invoke')">Invocación</button>
+        <button class="tab-btn" onclick="switchTab(this,'skills-python')">Implementación Python</button>
+      </div>
+
+      <div id="skills-decl" class="tab-panel active">
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="filename">system_prompt.xml</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+          </div>
+          <pre><span class="cmt">&lt;!-- Bloque inyectado en el system prompt --&gt;</span>
+<span class="kw">&lt;available_skills&gt;</span>
+  <span class="kw">&lt;skill&gt;</span>
+    <span class="key">&lt;name&gt;</span><span class="val">pdf-reader</span><span class="key">&lt;/name&gt;</span>
+    <span class="key">&lt;description&gt;</span>
+      Extrae texto y estructura de archivos PDF.
+      Úsala cuando el usuario suba o mencione un PDF.
+    <span class="key">&lt;/description&gt;</span>
+    <span class="key">&lt;location&gt;</span><span class="val">builtin</span><span class="key">&lt;/location&gt;</span>
+  <span class="kw">&lt;/skill&gt;</span>
+
+  <span class="kw">&lt;skill&gt;</span>
+    <span class="key">&lt;name&gt;</span><span class="val">code-reviewer</span><span class="key">&lt;/name&gt;</span>
+    <span class="key">&lt;description&gt;</span>
+      Revisa código fuente en busca de bugs, problemas de
+      seguridad y oportunidades de mejora. Soporta los
+      lenguajes: Python, TypeScript, Go, Rust, Java.
+    <span class="key">&lt;/description&gt;</span>
+    <span class="key">&lt;location&gt;</span><span class="val">builtin</span><span class="key">&lt;/location&gt;</span>
+  <span class="kw">&lt;/skill&gt;</span>
+<span class="kw">&lt;/available_skills&gt;</span></pre>
+        </div>
+      </div>
+
+      <div id="skills-invoke" class="tab-panel">
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="filename">invocación (Claude interna)</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+          </div>
+          <pre><span class="cmt">// Claude detecta que necesita la skill y la invoca:</span>
+<span class="kw">const</span> <span class="var">result</span> = <span class="kw">await</span> <span class="fn">invokeSkill</span>(<span class="str">'pdf-reader'</span>, {
+  file: <span class="var">userUploadedFile</span>,
+  options: { pages: <span class="str">'all'</span>, format: <span class="str">'markdown'</span> }
+});
+
+<span class="cmt">// Usa el resultado para responder al usuario</span>
+<span class="kw">const</span> <span class="var">summary</span> = <span class="fn">summarize</span>(<span class="var">result</span>.<span class="prop">text</span>);
+<span class="kw">return</span> <span class="str">`El PDF contiene ${<span class="var">result</span>.<span class="prop">pages</span>} páginas. Resumen:\n${<span class="var">summary</span>}`</span>;</pre>
+        </div>
+      </div>
+
+      <div id="skills-python" class="tab-panel">
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="filename">skill_pdf_reader.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+          </div>
+          <pre><span class="kw">from</span> anthropic <span class="kw">import</span> Anthropic
+<span class="kw">import</span> base64, pathlib
+
+client = Anthropic()
+
+<span class="kw">def</span> <span class="fn">pdf_skill</span>(pdf_path: <span class="fn">str</span>, question: <span class="fn">str</span>) -> <span class="fn">str</span>:
+    <span class="str">"""Skill: leer un PDF y responder una pregunta sobre él."""</span>
+    data = base64.<span class="fn">standard_b64encode</span>(
+        pathlib.Path(pdf_path).<span class="fn">read_bytes</span>()
+    ).<span class="fn">decode</span>()
+
+    msg = client.messages.<span class="fn">create</span>(
+        model=<span class="str">"claude-opus-4-5"</span>,
+        max_tokens=<span class="num">1024</span>,
+        messages=[{
+            <span class="str">"role"</span>: <span class="str">"user"</span>,
+            <span class="str">"content"</span>: [
+                {
+                    <span class="str">"type"</span>: <span class="str">"document"</span>,
+                    <span class="str">"source"</span>: {
+                        <span class="str">"type"</span>: <span class="str">"base64"</span>,
+                        <span class="str">"media_type"</span>: <span class="str">"application/pdf"</span>,
+                        <span class="str">"data"</span>: data,
+                    },
+                },
+                {<span class="str">"type"</span>: <span class="str">"text"</span>, <span class="str">"text"</span>: question},
+            ],
+        }],
+    )
+    <span class="kw">return</span> msg.content[<span class="num">0</span>].text
+
+<span class="cmt"># Uso:</span>
+answer = <span class="fn">pdf_skill</span>(<span class="str">"contrato.pdf"</span>, <span class="str">"¿Cuál es la fecha de vencimiento?"</span>)
+<span class="fn">print</span>(answer)</pre>
+        </div>
+      </div>
+
+      <div class="alert">
+        <span class="icon">💡</span>
+        <span>Las skills son <em>estáticas</em>: se declaran antes de la conversación. Los <strong>tools</strong> son <em>dinámicos</em>: Claude decide cuándo y cómo llamarlos en tiempo de ejecución.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     2. TOOLS
+════════════════════════════════════════════ -->
+<section class="section" id="tools">
+  <div class="section-header">
+    <div class="section-icon">🔧</div>
+    <h2>Tools</h2>
+    <span class="tag">Herramientas</span>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <p>Los <strong>Tools</strong> son funciones externas que Claude puede invocar para obtener información o ejecutar acciones. Claude decide cuándo usar un tool en función del contexto de la conversación.</p>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'tools-def')">Definición</button>
+        <button class="tab-btn" onclick="switchTab(this,'tools-loop')">Tool-use loop</button>
+        <button class="tab-btn" onclick="switchTab(this,'tools-demo')">Demo interactiva</button>
+      </div>
+
+      <div id="tools-def" class="tab-panel active">
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="filename">define_tools.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+          </div>
+          <pre><span class="kw">import</span> anthropic, json, requests
+
+client = anthropic.Anthropic()
+
+<span class="cmt"># 1. Definir las herramientas con JSON Schema</span>
+tools = [
+  {
+    <span class="str">"name"</span>: <span class="str">"get_weather"</span>,
+    <span class="str">"description"</span>: <span class="str">"Obtiene el tiempo actual de una ciudad."</span>,
+    <span class="str">"input_schema"</span>: {
+      <span class="str">"type"</span>: <span class="str">"object"</span>,
+      <span class="str">"properties"</span>: {
+        <span class="str">"city"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>, <span class="str">"description"</span>: <span class="str">"Nombre de la ciudad"</span>},
+        <span class="str">"units"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>, <span class="str">"enum"</span>: [<span class="str">"celsius"</span>, <span class="str">"fahrenheit"</span>]}
+      },
+      <span class="str">"required"</span>: [<span class="str">"city"</span>]
+    }
+  },
+  {
+    <span class="str">"name"</span>: <span class="str">"search_web"</span>,
+    <span class="str">"description"</span>: <span class="str">"Busca información actualizada en la web."</span>,
+    <span class="str">"input_schema"</span>: {
+      <span class="str">"type"</span>: <span class="str">"object"</span>,
+      <span class="str">"properties"</span>: {
+        <span class="str">"query"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}
+      },
+      <span class="str">"required"</span>: [<span class="str">"query"</span>]
+    }
+  }
+]</pre>
+        </div>
+      </div>
+
+      <div id="tools-loop" class="tab-panel">
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="filename">tool_loop.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+          </div>
+          <pre><span class="kw">def</span> <span class="fn">run_with_tools</span>(user_message: <span class="fn">str</span>) -> <span class="fn">str</span>:
+    messages = [{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: user_message}]
+
+    <span class="kw">while True</span>:
+        response = client.messages.<span class="fn">create</span>(
+            model=<span class="str">"claude-opus-4-5"</span>,
+            max_tokens=<span class="num">1024</span>,
+            tools=tools,
+            messages=messages,
+        )
+
+        <span class="cmt"># Si Claude no necesita ningún tool, devolvemos la respuesta</span>
+        <span class="kw">if</span> response.stop_reason == <span class="str">"end_turn"</span>:
+            <span class="kw">return</span> response.content[<span class="num">0</span>].text
+
+        <span class="cmt"># Procesar cada tool_use en el response</span>
+        tool_results = []
+        <span class="kw">for</span> block <span class="kw">in</span> response.content:
+            <span class="kw">if</span> block.type == <span class="str">"tool_use"</span>:
+                result = <span class="fn">execute_tool</span>(block.name, block.input)
+                tool_results.<span class="fn">append</span>({
+                    <span class="str">"type"</span>: <span class="str">"tool_result"</span>,
+                    <span class="str">"tool_use_id"</span>: block.id,
+                    <span class="str">"content"</span>: json.<span class="fn">dumps</span>(result),
+                })
+
+        <span class="cmt"># Devolver los resultados a Claude y continuar</span>
+        messages.<span class="fn">extend</span>([
+            {<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: response.content},
+            {<span class="str">"role"</span>: <span class="str">"user"</span>,      <span class="str">"content"</span>: tool_results},
+        ])
+
+
+<span class="kw">def</span> <span class="fn">execute_tool</span>(name: <span class="fn">str</span>, inputs: <span class="fn">dict</span>) -> <span class="fn">dict</span>:
+    <span class="kw">if</span> name == <span class="str">"get_weather"</span>:
+        <span class="cmt"># En producción: llamada real a OpenWeatherMap / WeatherAPI</span>
+        <span class="kw">return</span> {<span class="str">"temp"</span>: <span class="num">22</span>, <span class="str">"condition"</span>: <span class="str">"soleado"</span>, <span class="str">"humidity"</span>: <span class="num">45</span>}
+    <span class="kw">if</span> name == <span class="str">"search_web"</span>:
+        <span class="kw">return</span> {<span class="str">"results"</span>: [<span class="str">"Resultado 1…"</span>, <span class="str">"Resultado 2…"</span>]}
+    <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="str">f"Tool desconocido: {name}"</span>)
+
+answer = <span class="fn">run_with_tools</span>(<span class="str">"¿Qué tiempo hace en Madrid ahora mismo?"</span>)
+<span class="fn">print</span>(answer)</pre>
+        </div>
+      </div>
+
+      <div id="tools-demo" class="tab-panel">
+        <div class="demo-box">
+          <label>Simula una llamada a tool – selecciona el tool:</label>
+          <select id="tool-select">
+            <option value="get_weather">get_weather</option>
+            <option value="search_web">search_web</option>
+          </select>
+          <div id="weather-params">
+            <div style="margin-top:.5rem">
+              <label>city</label>
+              <input type="text" id="tool-city" value="Barcelona" />
+            </div>
+            <div style="margin-top:.4rem">
+              <label>units</label>
+              <select id="tool-units"><option>celsius</option><option>fahrenheit</option></select>
+            </div>
+          </div>
+          <div id="search-params" style="display:none;margin-top:.5rem">
+            <label>query</label>
+            <input type="text" id="tool-query" value="últimas noticias tecnología" />
+          </div>
+          <div class="demo-row">
+            <button class="btn" onclick="runToolDemo()">▶ Ejecutar</button>
+          </div>
+          <div class="output-box" id="tool-output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     3. COMMANDS
+════════════════════════════════════════════ -->
+<section class="section" id="commands">
+  <div class="section-header">
+    <div class="section-icon">⌨️</div>
+    <h2>Commands</h2>
+    <span class="tag">Comandos</span>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <p>Los <strong>Commands</strong> son instrucciones con barra (<code>/comando</code>) que Claude reconoce para ejecutar comportamientos predefinidos sin necesidad de una descripción en lenguaje natural. Se pueden registrar en la configuración del agente.</p>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+          <span class="filename">.claude/commands/summarize.md</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        </div>
+        <pre><span class="cmt">---
+name: summarize
+description: Resume el texto o archivo dado en 3 puntos clave
+arguments:
+  - name: target
+    description: Texto o ruta de archivo a resumir
+    required: true
+---</span>
+
+<span class="str">Por favor, resume el siguiente contenido en exactamente 3 puntos clave,
+cada uno en una línea comenzando con "•".</span>
+
+<span class="str">Contenido a resumir:</span>
+<span class="kw">$ARGUMENTS</span></pre>
+      </div>
+
+      <div class="code-wrap" style="margin-top:1rem">
+        <div class="code-header">
+          <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+          <span class="filename">commands_api.py  –  registrar comandos via API</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        </div>
+        <pre><span class="kw">import</span> anthropic
+
+client = anthropic.Anthropic()
+
+<span class="cmt"># Comandos definidos como "prefilled prompts" en el system prompt</span>
+COMMANDS = {
+    <span class="str">"/help"</span>:    <span class="str">"Lista todos los comandos disponibles y su uso."</span>,
+    <span class="str">"/clear"</span>:   <span class="str">"Reinicia la conversación y olvida el historial previo."</span>,
+    <span class="str">"/explain"</span>: <span class="str">"Explica el último bloque de código de forma detallada."</span>,
+    <span class="str">"/refactor"</span>:<span class="str">"Refactoriza el último bloque de código con mejores prácticas."</span>,
+}
+
+SYSTEM = <span class="str">"""Eres un asistente de programación.
+Comandos disponibles:
+"""</span> + <span class="str">"\n"</span>.<span class="fn">join</span>(f<span class="str">"{k}: {v}"</span> <span class="kw">for</span> k, v <span class="kw">in</span> COMMANDS.<span class="fn">items</span>())
+
+<span class="kw">def</span> <span class="fn">chat</span>(history: <span class="fn">list</span>, user_input: <span class="fn">str</span>):
+    history.<span class="fn">append</span>({<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: user_input})
+    resp = client.messages.<span class="fn">create</span>(
+        model=<span class="str">"claude-opus-4-5"</span>,
+        max_tokens=<span class="num">512</span>,
+        system=SYSTEM,
+        messages=history,
+    )
+    reply = resp.content[<span class="num">0</span>].text
+    history.<span class="fn">append</span>({<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: reply})
+    <span class="kw">return</span> reply
+
+history = []
+<span class="fn">print</span>(<span class="fn">chat</span>(history, <span class="str">"/help"</span>))
+<span class="fn">print</span>(<span class="fn">chat</span>(history, <span class="str">"/explain\n```python\nfor i in range(10): print(i)\n```"</span>))</pre>
+      </div>
+
+      <div class="demo-box" style="margin-top:.75rem">
+        <label>Prueba un comando:</label>
+        <div class="demo-row">
+          <select id="cmd-select" style="flex:1">
+            <option value="/help">/help</option>
+            <option value="/clear">/clear</option>
+            <option value="/explain">/explain</option>
+            <option value="/refactor">/refactor</option>
+          </select>
+          <button class="btn" onclick="runCommandDemo()">▶ Ejecutar</button>
+        </div>
+        <div class="output-box" id="cmd-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     4. HOOKS
+════════════════════════════════════════════ -->
+<section class="section" id="hooks">
+  <div class="section-header">
+    <div class="section-icon">🪝</div>
+    <h2>Hooks</h2>
+    <span class="tag">Eventos</span>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <p>Los <strong>Hooks</strong> son funciones que se disparan automáticamente en puntos específicos del ciclo de vida de Claude: antes de ejecutar un tool, después de recibir una respuesta, al iniciar/terminar una sesión, etc.</p>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'hooks-config')">Configuración</button>
+        <button class="tab-btn" onclick="switchTab(this,'hooks-code')">Implementación</button>
+        <button class="tab-btn" onclick="switchTab(this,'hooks-flow')">Flujo</button>
+      </div>
+
+      <div id="hooks-config" class="tab-panel active">
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="filename">.claude/settings.json</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+          </div>
+          <pre>{
+  <span class="key">"hooks"</span>: {
+    <span class="key">"PreToolUse"</span>: [
+      {
+        <span class="key">"matcher"</span>: <span class="val">"bash"</span>,
+        <span class="key">"hooks"</span>: [{
+          <span class="key">"type"</span>: <span class="val">"command"</span>,
+          <span class="key">"command"</span>: <span class="val">"python hooks/pre_bash_validator.py"</span>
+        }]
+      }
+    ],
+    <span class="key">"PostToolUse"</span>: [
+      {
+        <span class="key">"matcher"</span>: <span class="val">"*"</span>,
+        <span class="key">"hooks"</span>: [{
+          <span class="key">"type"</span>: <span class="val">"command"</span>,
+          <span class="key">"command"</span>: <span class="val">"python hooks/audit_logger.py"</span>
+        }]
+      }
+    ],
+    <span class="key">"Stop"</span>: [
+      {
+        <span class="key">"hooks"</span>: [{
+          <span class="key">"type"</span>: <span class="val">"command"</span>,
+          <span class="key">"command"</span>: <span class="val">"python hooks/session_summary.py"</span>
+        }]
+      }
+    ]
+  }
+}</pre>
+        </div>
+      </div>
+
+      <div id="hooks-code" class="tab-panel">
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="filename">hooks/pre_bash_validator.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+          </div>
+          <pre><span class="kw">import</span> sys, json
+
+<span class="cmt">"""
+Hook PreToolUse: valida comandos bash antes de ejecutarlos.
+Recibe JSON por stdin, escribe JSON por stdout.
+Exit 0 = continuar | Exit 1 = bloquear
+"""</span>
+
+BLOCKED_CMDS = [<span class="str">"rm -rf /"</span>, <span class="str">"dd if=/dev/zero"</span>, <span class="str">":(){ :|:& };:"</span>]
+
+payload = json.<span class="fn">loads</span>(sys.stdin.<span class="fn">read</span>())
+command  = payload.<span class="fn">get</span>(<span class="str">"tool_input"</span>, {}).<span class="fn">get</span>(<span class="str">"command"</span>, <span class="str">""</span>)
+
+<span class="kw">for</span> bad <span class="kw">in</span> BLOCKED_CMDS:
+    <span class="kw">if</span> bad <span class="kw">in</span> command:
+        <span class="fn">print</span>(json.<span class="fn">dumps</span>({
+            <span class="str">"decision"</span>: <span class="str">"block"</span>,
+            <span class="str">"reason"</span>: <span class="str">f"Comando peligroso detectado: '{bad}'"</span>
+        }))
+        sys.<span class="fn">exit</span>(<span class="num">1</span>)
+
+<span class="fn">print</span>(json.<span class="fn">dumps</span>({<span class="str">"decision"</span>: <span class="str">"approve"</span>}))
+sys.<span class="fn">exit</span>(<span class="num">0</span>)</pre>
+        </div>
+        <div class="code-wrap" style="margin-top:.75rem">
+          <div class="code-header">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="filename">hooks/audit_logger.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+          </div>
+          <pre><span class="kw">import</span> sys, json, datetime, pathlib
+
+<span class="cmt">"""Hook PostToolUse: registra cada uso de herramienta en un log."""</span>
+
+LOG_FILE = pathlib.Path(<span class="str">"logs/tool_audit.jsonl"</span>)
+LOG_FILE.parent.<span class="fn">mkdir</span>(exist_ok=<span class="kw">True</span>)
+
+payload = json.<span class="fn">loads</span>(sys.stdin.<span class="fn">read</span>())
+
+entry = {
+    <span class="str">"ts"</span>:       datetime.datetime.<span class="fn">utcnow</span>().<span class="fn">isoformat</span>(),
+    <span class="str">"tool"</span>:     payload.<span class="fn">get</span>(<span class="str">"tool_name"</span>),
+    <span class="str">"input"</span>:    payload.<span class="fn">get</span>(<span class="str">"tool_input"</span>),
+    <span class="str">"exit_code"</span>:payload.<span class="fn">get</span>(<span class="str">"tool_result"</span>, {}).<span class="fn">get</span>(<span class="str">"exit_code"</span>),
+}
+
+<span class="kw">with</span> LOG_FILE.<span class="fn">open</span>(<span class="str">"a"</span>) <span class="kw">as</span> f:
+    f.<span class="fn">write</span>(json.<span class="fn">dumps</span>(entry) + <span class="str">"\n"</span>)
+
+sys.<span class="fn">exit</span>(<span class="num">0</span>)</pre>
+        </div>
+      </div>
+
+      <div id="hooks-flow" class="tab-panel">
+        <p style="font-size:.9rem;color:var(--muted);margin-bottom:.8rem">Ciclo de vida de una solicitud con hooks activos:</p>
+        <div class="flow">
+          <span class="flow-node" style="color:var(--blue)">Usuario envía mensaje</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Claude decide usar tool</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node" style="color:var(--orange)">🪝 PreToolUse hook</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node" style="color:var(--green)">Tool ejecutado</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node" style="color:var(--orange)">🪝 PostToolUse hook</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Claude responde</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node" style="color:var(--orange)">🪝 Stop hook</span>
+        </div>
+        <div class="concept-grid" style="margin-top:1rem">
+          <div class="concept-card">
+            <div class="icon">⬆️</div>
+            <h4>PreToolUse</h4>
+            <p>Se dispara antes de ejecutar un tool. Puede bloquear la ejecución.</p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">⬇️</div>
+            <h4>PostToolUse</h4>
+            <p>Se dispara después de que el tool retorna. Útil para auditoría.</p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">▶️</div>
+            <h4>PreTurn</h4>
+            <p>Al inicio de cada turno del usuario. Inyecta contexto dinámico.</p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">⏹️</div>
+            <h4>Stop</h4>
+            <p>Al finalizar la sesión. Genera resúmenes o limpia recursos.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     5. AGENTS
+════════════════════════════════════════════ -->
+<section class="section" id="agents">
+  <div class="section-header">
+    <div class="section-icon">🤖</div>
+    <h2>Agents</h2>
+    <span class="tag">Agentes</span>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <p>Un <strong>Agent</strong> es una instancia de Claude que opera en un bucle autónomo: percibe el entorno, razona, llama tools y genera acciones hasta completar un objetivo sin intervención humana en cada paso.</p>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+          <span class="filename">research_agent.py</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        </div>
+        <pre><span class="kw">import</span> anthropic, json
+
+client = anthropic.Anthropic()
+
+<span class="cmt"># Herramientas disponibles para el agente</span>
+AGENT_TOOLS = [
+    {
+        <span class="str">"name"</span>: <span class="str">"web_search"</span>,
+        <span class="str">"description"</span>: <span class="str">"Busca en la web y devuelve resultados relevantes."</span>,
+        <span class="str">"input_schema"</span>: {
+            <span class="str">"type"</span>: <span class="str">"object"</span>,
+            <span class="str">"properties"</span>: {<span class="str">"query"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}},
+            <span class="str">"required"</span>: [<span class="str">"query"</span>],
+        },
+    },
+    {
+        <span class="str">"name"</span>: <span class="str">"save_notes"</span>,
+        <span class="str">"description"</span>: <span class="str">"Guarda notas en un archivo local."</span>,
+        <span class="str">"input_schema"</span>: {
+            <span class="str">"type"</span>: <span class="str">"object"</span>,
+            <span class="str">"properties"</span>: {
+                <span class="str">"filename"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>},
+                <span class="str">"content"</span>:  {<span class="str">"type"</span>: <span class="str">"string"</span>},
+            },
+            <span class="str">"required"</span>: [<span class="str">"filename"</span>, <span class="str">"content"</span>],
+        },
+    },
+]
+
+
+<span class="kw">class</span> <span class="fn">ResearchAgent</span>:
+    <span class="str">"""Agente que investiga un tema y guarda un informe."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, topic: <span class="fn">str</span>):
+        <span class="kw">self</span>.topic   = topic
+        <span class="kw">self</span>.history = []
+        <span class="kw">self</span>.system  = (
+            <span class="str">"Eres un agente investigador autónomo. "
+            "Usa web_search para reunir información y "
+            "save_notes para guardar el informe final."</span>
+        )
+
+    <span class="kw">def</span> <span class="fn">run</span>(<span class="kw">self</span>) -> <span class="fn">str</span>:
+        <span class="kw">self</span>.history.<span class="fn">append</span>({
+            <span class="str">"role"</span>: <span class="str">"user"</span>,
+            <span class="str">"content"</span>: <span class="str">f"Investiga: {<span class="kw">self</span>.topic}. Escribe un informe completo."</span>,
+        })
+
+        <span class="kw">while True</span>:
+            resp = client.messages.<span class="fn">create</span>(
+                model=<span class="str">"claude-opus-4-5"</span>,
+                max_tokens=<span class="num">2048</span>,
+                system=<span class="kw">self</span>.system,
+                tools=AGENT_TOOLS,
+                messages=<span class="kw">self</span>.history,
+            )
+
+            <span class="kw">if</span> resp.stop_reason == <span class="str">"end_turn"</span>:
+                <span class="kw">return</span> resp.content[<span class="num">0</span>].text  <span class="cmt"># Tarea completada</span>
+
+            <span class="cmt"># Ejecutar tools y continuar</span>
+            results = []
+            <span class="kw">for</span> block <span class="kw">in</span> resp.content:
+                <span class="kw">if</span> block.type == <span class="str">"tool_use"</span>:
+                    out = <span class="kw">self</span>.<span class="fn">_exec_tool</span>(block.name, block.input)
+                    results.<span class="fn">append</span>({
+                        <span class="str">"type"</span>: <span class="str">"tool_result"</span>,
+                        <span class="str">"tool_use_id"</span>: block.id,
+                        <span class="str">"content"</span>: json.<span class="fn">dumps</span>(out),
+                    })
+
+            <span class="kw">self</span>.history.<span class="fn">extend</span>([
+                {<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: resp.content},
+                {<span class="str">"role"</span>: <span class="str">"user"</span>,      <span class="str">"content"</span>: results},
+            ])
+
+    <span class="kw">def</span> <span class="fn">_exec_tool</span>(<span class="kw">self</span>, name, inputs):
+        <span class="kw">if</span> name == <span class="str">"web_search"</span>:
+            <span class="kw">return</span> {<span class="str">"results"</span>: [<span class="str">f"Artículo sobre {inputs['query']}…"</span>]}
+        <span class="kw">if</span> name == <span class="str">"save_notes"</span>:
+            <span class="kw">with</span> <span class="fn">open</span>(inputs[<span class="str">"filename"</span>], <span class="str">"w"</span>) <span class="kw">as</span> f:
+                f.<span class="fn">write</span>(inputs[<span class="str">"content"</span>])
+            <span class="kw">return</span> {<span class="str">"saved"</span>: inputs[<span class="str">"filename"</span>]}
+
+<span class="cmt"># Uso:</span>
+agent = <span class="fn">ResearchAgent</span>(<span class="str">"Historia del procesador ARM"</span>)
+report = agent.<span class="fn">run</span>()
+<span class="fn">print</span>(report)</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     6. SUB-AGENTS
+════════════════════════════════════════════ -->
+<section class="section" id="subagents">
+  <div class="section-header">
+    <div class="section-icon">🧬</div>
+    <h2>Sub-Agents</h2>
+    <span class="tag">Orquestación</span>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <p>Un <strong>Sub-Agent</strong> es un agente especializado lanzado por un orquestador (agente padre). El orquestador descompone el trabajo en tareas, delega cada una a sub-agentes y consolida los resultados.</p>
+
+      <div class="flow" style="margin-bottom:1rem">
+        <span class="flow-node" style="color:var(--accent)">🤖 Orchestrator</span>
+        <span class="flow-arrow">→ delega →</span>
+        <span class="flow-node" style="color:var(--cyan)">🔍 Research Sub-Agent</span>
+        <span class="flow-arrow">+</span>
+        <span class="flow-node" style="color:var(--green)">✍️ Writer Sub-Agent</span>
+        <span class="flow-arrow">+</span>
+        <span class="flow-node" style="color:var(--orange)">✅ QA Sub-Agent</span>
+        <span class="flow-arrow">→ consolida →</span>
+        <span class="flow-node">Resultado final</span>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+          <span class="filename">orchestrator.py</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        </div>
+        <pre><span class="kw">import</span> anthropic, concurrent.futures
+
+client = anthropic.Anthropic()
+
+<span class="kw">def</span> <span class="fn">run_subagent</span>(role: <span class="fn">str</span>, task: <span class="fn">str</span>) -> <span class="fn">str</span>:
+    <span class="str">"""Lanza un sub-agente con un rol y tarea específicos."""</span>
+    resp = client.messages.<span class="fn">create</span>(
+        model=<span class="str">"claude-haiku-4-5"</span>,  <span class="cmt"># sub-agentes usan modelo rápido</span>
+        max_tokens=<span class="num">1024</span>,
+        system=<span class="str">f"Eres un {role}. Completa la tarea de forma concisa."</span>,
+        messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: task}],
+    )
+    <span class="kw">return</span> resp.content[<span class="num">0</span>].text
+
+
+<span class="kw">def</span> <span class="fn">orchestrate</span>(topic: <span class="fn">str</span>) -> <span class="fn">str</span>:
+    <span class="str">"""Orquestador que paraleliza tres sub-agentes."""</span>
+    tasks = {
+        <span class="str">"investigador"</span>: <span class="str">f"Lista 5 hechos clave sobre: {topic}"</span>,
+        <span class="str">"redactor"</span>:     <span class="str">f"Escribe una intro de 3 párrafos sobre: {topic}"</span>,
+        <span class="str">"revisor QA"</span>:   <span class="str">f"Lista 3 posibles críticas al tema: {topic}"</span>,
+    }
+
+    <span class="cmt"># Ejecutar sub-agentes en paralelo</span>
+    results = {}
+    <span class="kw">with</span> concurrent.futures.<span class="fn">ThreadPoolExecutor</span>() <span class="kw">as</span> pool:
+        futures = {
+            pool.<span class="fn">submit</span>(<span class="fn">run_subagent</span>, role, task): role
+            <span class="kw">for</span> role, task <span class="kw">in</span> tasks.<span class="fn">items</span>()
+        }
+        <span class="kw">for</span> future <span class="kw">in</span> concurrent.futures.<span class="fn">as_completed</span>(futures):
+            results[futures[future]] = future.<span class="fn">result</span>()
+
+    <span class="cmt"># Agente orquestador consolida todo</span>
+    synthesis_prompt = <span class="str">f"""
+    Combina los siguientes aportes en un artículo coherente:
+
+    HECHOS:
+    {results['investigador']}
+
+    INTRODUCCIÓN:
+    {results['redactor']}
+
+    CRÍTICAS:
+    {results['revisor QA']}
+    """</span>
+
+    final = client.messages.<span class="fn">create</span>(
+        model=<span class="str">"claude-opus-4-5"</span>,  <span class="cmt"># orquestador usa modelo potente</span>
+        max_tokens=<span class="num">2048</span>,
+        messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: synthesis_prompt}],
+    )
+    <span class="kw">return</span> final.content[<span class="num">0</span>].text
+
+article = <span class="fn">orchestrate</span>(<span class="str">"inteligencia artificial en medicina"</span>)
+<span class="fn">print</span>(article)</pre>
+      </div>
+
+      <div class="alert" style="margin-top:.75rem">
+        <span class="icon">⚡</span>
+        <span>Los sub-agentes pueden ejecutarse en paralelo (<code>ThreadPoolExecutor</code>) para reducir la latencia total. El orquestador usa el modelo más capaz; los sub-agentes suelen usar un modelo más rápido y económico.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     7. HARNESS
+════════════════════════════════════════════ -->
+<section class="section" id="harness">
+  <div class="section-header">
+    <div class="section-icon">🧪</div>
+    <h2>Harness</h2>
+    <span class="tag">Testing</span>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <p>Un <strong>Harness</strong> es el andamiaje de pruebas que ejecuta agentes o flujos de Claude de forma controlada, verifica que las salidas cumplan criterios y mide métricas (precisión, coste, latencia).</p>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'harness-basic')">Harness básico</button>
+        <button class="tab-btn" onclick="switchTab(this,'harness-eval')">Evals con LLM-juez</button>
+        <button class="tab-btn" onclick="switchTab(this,'harness-ci')">CI/CD</button>
+      </div>
+
+      <div id="harness-basic" class="tab-panel active">
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="filename">test_harness.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+          </div>
+          <pre><span class="kw">import</span> pytest, anthropic, time
+
+client = anthropic.Anthropic()
+
+<span class="cmt"># Casos de prueba: (entrada, criterio de aceptación)</span>
+TEST_CASES = [
+    {
+        <span class="str">"input"</span>:    <span class="str">"¿Cuánto es 2 + 2?"</span>,
+        <span class="str">"expected"</span>: <span class="str">"4"</span>,
+        <span class="str">"check"</span>:    <span class="kw">lambda</span> r: <span class="str">"4"</span> <span class="kw">in</span> r,
+    },
+    {
+        <span class="str">"input"</span>:    <span class="str">"Escribe 'Hola mundo' en Python"</span>,
+        <span class="str">"expected"</span>: <span class="str">"print"</span>,
+        <span class="str">"check"</span>:    <span class="kw">lambda</span> r: <span class="str">"print"</span> <span class="kw">in</span> r.lower(),
+    },
+    {
+        <span class="str">"input"</span>:    <span class="str">"Qué es un pointer en C?"</span>,
+        <span class="str">"expected"</span>: <span class="str">"dirección de memoria"</span>,
+        <span class="str">"check"</span>:    <span class="kw">lambda</span> r: <span class="str">"memor"</span> <span class="kw">in</span> r.lower(),
+    },
+]
+
+<span class="kw">class</span> <span class="fn">HarnessResult</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, case, response, passed, latency_ms):
+        <span class="kw">self</span>.case       = case
+        <span class="kw">self</span>.response   = response
+        <span class="kw">self</span>.passed     = passed
+        <span class="kw">self</span>.latency_ms = latency_ms
+
+<span class="kw">def</span> <span class="fn">run_harness</span>(cases=TEST_CASES) -> <span class="fn">list</span>[HarnessResult]:
+    results = []
+    <span class="kw">for</span> case <span class="kw">in</span> cases:
+        t0 = time.<span class="fn">perf_counter</span>()
+        resp = client.messages.<span class="fn">create</span>(
+            model=<span class="str">"claude-haiku-4-5"</span>,
+            max_tokens=<span class="num">256</span>,
+            messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: case[<span class="str">"input"</span>]}],
+        )
+        latency = (<span class="fn">time</span>.<span class="fn">perf_counter</span>() - t0) * <span class="num">1000</span>
+        text = resp.content[<span class="num">0</span>].text
+        results.<span class="fn">append</span>(<span class="fn">HarnessResult</span>(case, text, case[<span class="str">"check"</span>](text), latency))
+    <span class="kw">return</span> results
+
+<span class="cmt"># Tests pytest</span>
+@pytest.mark.<span class="fn">parametrize</span>(<span class="str">"case"</span>, TEST_CASES)
+<span class="kw">def</span> <span class="fn">test_claude_response</span>(case):
+    resp = client.messages.<span class="fn">create</span>(
+        model=<span class="str">"claude-haiku-4-5"</span>, max_tokens=<span class="num">256</span>,
+        messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: case[<span class="str">"input"</span>]}],
+    )
+    text = resp.content[<span class="num">0</span>].text
+    <span class="kw">assert</span> case[<span class="str">"check"</span>](text), <span class="str">f"Falló: {case['input']!r}\nRespuesta: {text}"</span></pre>
+        </div>
+      </div>
+
+      <div id="harness-eval" class="tab-panel">
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="filename">llm_judge_eval.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+          </div>
+          <pre><span class="kw">from</span> anthropic <span class="kw">import</span> Anthropic
+
+client = Anthropic()
+
+JUDGE_PROMPT = <span class="str">"""\
+Eres un juez objetivo que evalúa respuestas de IA.
+Puntúa de 1 a 5 según:
+  5 = perfectamente correcto y completo
+  3 = parcialmente correcto
+  1 = incorrecto o irrelevante
+
+Pregunta: {question}
+Respuesta a evaluar: {answer}
+Respuesta esperada de referencia: {reference}
+
+Devuelve ÚNICAMENTE un JSON: {{"score": N, "reason": "..."}}
+"""</span>
+
+<span class="kw">def</span> <span class="fn">judge_response</span>(question: <span class="fn">str</span>, answer: <span class="fn">str</span>, reference: <span class="fn">str</span>) -> <span class="fn">dict</span>:
+    resp = client.messages.<span class="fn">create</span>(
+        model=<span class="str">"claude-opus-4-5"</span>,
+        max_tokens=<span class="num">256</span>,
+        messages=[{
+            <span class="str">"role"</span>: <span class="str">"user"</span>,
+            <span class="str">"content"</span>: JUDGE_PROMPT.<span class="fn">format</span>(
+                question=question, answer=answer, reference=reference
+            ),
+        }],
+    )
+    <span class="kw">import</span> json, re
+    text = resp.content[<span class="num">0</span>].text
+    m = re.<span class="fn">search</span>(<span class="str">r'\{.*\}'</span>, text, re.DOTALL)
+    <span class="kw">return</span> json.<span class="fn">loads</span>(m.<span class="fn">group</span>()) <span class="kw">if</span> m <span class="kw">else</span> {<span class="str">"score"</span>: <span class="num">0</span>, <span class="str">"reason"</span>: <span class="str">"parse error"</span>}
+
+<span class="cmt"># Ejemplo de evaluación</span>
+result = <span class="fn">judge_response</span>(
+    question=<span class="str">"¿Cuál es la capital de Francia?"</span>,
+    answer=<span class="str">"La capital de Francia es París."</span>,
+    reference=<span class="str">"París"</span>,
+)
+<span class="fn">print</span>(result)  <span class="cmt"># {"score": 5, "reason": "Respuesta correcta y directa."}</span></pre>
+        </div>
+      </div>
+
+      <div id="harness-ci" class="tab-panel">
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="filename">.github/workflows/claude-evals.yml</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+          </div>
+          <pre><span class="key">name:</span> <span class="val">Claude Evals</span>
+
+<span class="key">on:</span>
+  <span class="key">pull_request:</span>
+    <span class="key">branches:</span> [<span class="val">main</span>]
+  <span class="key">schedule:</span>
+    - <span class="key">cron:</span> <span class="val">'0 6 * * *'</span>  <span class="cmt"># diariamente a las 6 UTC</span>
+
+<span class="key">jobs:</span>
+  <span class="key">run-harness:</span>
+    <span class="key">runs-on:</span> <span class="val">ubuntu-latest</span>
+    <span class="key">steps:</span>
+      - <span class="key">uses:</span> <span class="val">actions/checkout@v4</span>
+      - <span class="key">uses:</span> <span class="val">actions/setup-python@v5</span>
+        <span class="key">with:</span>
+          <span class="key">python-version:</span> <span class="val">'3.12'</span>
+      - <span class="key">run:</span> <span class="val">pip install anthropic pytest</span>
+      - <span class="key">name:</span> <span class="val">Run evaluation harness</span>
+        <span class="key">env:</span>
+          <span class="key">ANTHROPIC_API_KEY:</span> <span class="val">${{ secrets.ANTHROPIC_API_KEY }}</span>
+        <span class="key">run:</span> <span class="val">pytest tests/ -v --tb=short --json-report --json-report-file=eval_report.json</span>
+      - <span class="key">name:</span> <span class="val">Upload eval report</span>
+        <span class="key">uses:</span> <span class="val">actions/upload-artifact@v4</span>
+        <span class="key">if:</span> <span class="val">always()</span>
+        <span class="key">with:</span>
+          <span class="key">name:</span> <span class="val">eval-report</span>
+          <span class="key">path:</span> <span class="val">eval_report.json</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     8. MCP (Model Context Protocol)
+════════════════════════════════════════════ -->
+<section class="section" id="mcp">
+  <div class="section-header">
+    <div class="section-icon">🔌</div>
+    <h2>MCP – Model Context Protocol</h2>
+    <span class="tag">Protocolo</span>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <p>El <strong>Model Context Protocol (MCP)</strong> es un estándar abierto de Anthropic para conectar modelos de IA con fuentes de datos y herramientas externas. Un <em>MCP server</em> expone recursos, tools y prompts que Claude puede consumir.</p>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'mcp-server')">MCP Server</button>
+        <button class="tab-btn" onclick="switchTab(this,'mcp-client')">MCP Client</button>
+        <button class="tab-btn" onclick="switchTab(this,'mcp-config')">Configuración</button>
+      </div>
+
+      <div id="mcp-server" class="tab-panel active">
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="filename">mcp_server.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+          </div>
+          <pre><span class="kw">from</span> mcp.server.fastmcp <span class="kw">import</span> FastMCP
+<span class="kw">import</span> httpx, datetime
+
+<span class="cmt"># Crear el servidor MCP</span>
+mcp = <span class="fn">FastMCP</span>(<span class="str">"mi-servidor"</span>)
+
+
+<span class="cmt"># Tool: búsqueda en base de datos</span>
+@mcp.tool()
+<span class="kw">async def</span> <span class="fn">buscar_producto</span>(nombre: <span class="fn">str</span>, max_precio: <span class="fn">float</span> = <span class="num">None</span>) -> <span class="fn">dict</span>:
+    <span class="str">"""Busca productos en el catálogo."""</span>
+    <span class="cmt"># Simulación: en producción sería una DB real</span>
+    productos = [
+        {<span class="str">"id"</span>: <span class="num">1</span>, <span class="str">"nombre"</span>: <span class="str">"Laptop Pro"</span>, <span class="str">"precio"</span>: <span class="num">1299.0</span>},
+        {<span class="str">"id"</span>: <span class="num">2</span>, <span class="str">"nombre"</span>: <span class="str">"Mouse inalámbrico"</span>, <span class="str">"precio"</span>: <span class="num">45.0</span>},
+    ]
+    results = [p <span class="kw">for</span> p <span class="kw">in</span> productos
+               <span class="kw">if</span> nombre.lower() <span class="kw">in</span> p[<span class="str">"nombre"</span>].lower()
+               <span class="kw">and</span> (max_precio <span class="kw">is None or</span> p[<span class="str">"precio"</span>] <= max_precio)]
+    <span class="kw">return</span> {<span class="str">"count"</span>: <span class="fn">len</span>(results), <span class="str">"products"</span>: results}
+
+
+<span class="cmt"># Resource: lectura de archivos de configuración</span>
+@mcp.resource(<span class="str">"config://app-settings"</span>)
+<span class="kw">def</span> <span class="fn">get_app_settings</span>() -> <span class="fn">str</span>:
+    <span class="str">"""Expone la configuración de la app como recurso MCP."""</span>
+    <span class="kw">return</span> <span class="str">"""{
+  "version": "2.1.0",
+  "features": ["search", "notifications", "export"],
+  "max_upload_mb": 50
+}"""</span>
+
+
+<span class="cmt"># Prompt: plantilla de informe</span>
+@mcp.prompt()
+<span class="kw">def</span> <span class="fn">informe_ventas</span>(mes: <span class="fn">str</span>, año: <span class="fn">int</span>) -> <span class="fn">str</span>:
+    <span class="str">"""Genera un prompt para crear el informe de ventas mensual."""</span>
+    <span class="kw">return</span> <span class="str">f"""Analiza los datos de ventas de {mes}/{año}.
+    Incluye: resumen ejecutivo, top-10 productos, tendencias y recomendaciones."""</span>
+
+
+<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
+    mcp.<span class="fn">run</span>()  <span class="cmt"># Inicia el servidor MCP (stdio o HTTP)</span></pre>
+        </div>
+      </div>
+
+      <div id="mcp-client" class="tab-panel">
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="filename">mcp_client.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+          </div>
+          <pre><span class="kw">import</span> asyncio
+<span class="kw">from</span> anthropic <span class="kw">import</span> Anthropic
+<span class="kw">from</span> mcp <span class="kw">import</span> ClientSession, StdioServerParameters
+<span class="kw">from</span> mcp.client.stdio <span class="kw">import</span> stdio_client
+
+client = Anthropic()
+
+<span class="kw">async def</span> <span class="fn">chat_with_mcp</span>(user_message: <span class="fn">str</span>):
+    server_params = <span class="fn">StdioServerParameters</span>(
+        command=<span class="str">"python"</span>, args=[<span class="str">"mcp_server.py"</span>]
+    )
+
+    <span class="kw">async with</span> <span class="fn">stdio_client</span>(server_params) <span class="kw">as</span> (read, write):
+        <span class="kw">async with</span> <span class="fn">ClientSession</span>(read, write) <span class="kw">as</span> session:
+            <span class="kw">await</span> session.<span class="fn">initialize</span>()
+
+            <span class="cmt"># Obtener tools del servidor MCP</span>
+            tools_response = <span class="kw">await</span> session.<span class="fn">list_tools</span>()
+            tools = [
+                {
+                    <span class="str">"name"</span>: t.name,
+                    <span class="str">"description"</span>: t.description,
+                    <span class="str">"input_schema"</span>: t.inputSchema,
+                }
+                <span class="kw">for</span> t <span class="kw">in</span> tools_response.tools
+            ]
+
+            messages = [{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: user_message}]
+
+            <span class="cmt"># Bucle tool-use estándar</span>
+            <span class="kw">while True</span>:
+                resp = client.messages.<span class="fn">create</span>(
+                    model=<span class="str">"claude-opus-4-5"</span>, max_tokens=<span class="num">1024</span>,
+                    tools=tools, messages=messages,
+                )
+                <span class="kw">if</span> resp.stop_reason == <span class="str">"end_turn"</span>:
+                    <span class="kw">return</span> resp.content[<span class="num">0</span>].text
+                results = []
+                <span class="kw">for</span> block <span class="kw">in</span> resp.content:
+                    <span class="kw">if</span> block.type == <span class="str">"tool_use"</span>:
+                        out = <span class="kw">await</span> session.<span class="fn">call_tool</span>(block.name, block.input)
+                        results.<span class="fn">append</span>({
+                            <span class="str">"type"</span>: <span class="str">"tool_result"</span>,
+                            <span class="str">"tool_use_id"</span>: block.id,
+                            <span class="str">"content"</span>: <span class="fn">str</span>(out),
+                        })
+                messages.<span class="fn">extend</span>([
+                    {<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: resp.content},
+                    {<span class="str">"role"</span>: <span class="str">"user"</span>,      <span class="str">"content"</span>: results},
+                ])
+
+asyncio.<span class="fn">run</span>(<span class="fn">chat_with_mcp</span>(<span class="str">"¿Tienes laptops por menos de 1500€?"</span>))</pre>
+        </div>
+      </div>
+
+      <div id="mcp-config" class="tab-panel">
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+            <span class="filename">claude_desktop_config.json  (~/Library/Application Support/Claude/)</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+          </div>
+          <pre>{
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"mi-servidor"</span>: {
+      <span class="key">"command"</span>: <span class="val">"python"</span>,
+      <span class="key">"args"</span>: [<span class="val">"/ruta/absoluta/mcp_server.py"</span>],
+      <span class="key">"env"</span>: {
+        <span class="key">"DATABASE_URL"</span>: <span class="val">"******localhost/db"</span>
+      }
+    },
+    <span class="key">"filesystem"</span>: {
+      <span class="key">"command"</span>: <span class="val">"npx"</span>,
+      <span class="key">"args"</span>: [<span class="val">"-y"</span>, <span class="val">"@modelcontextprotocol/server-filesystem"</span>, <span class="val">"/Users/user/docs"</span>]
+    },
+    <span class="key">"brave-search"</span>: {
+      <span class="key">"command"</span>: <span class="val">"npx"</span>,
+      <span class="key">"args"</span>: [<span class="val">"-y"</span>, <span class="val">"@modelcontextprotocol/server-brave-search"</span>],
+      <span class="key">"env"</span>: {
+        <span class="key">"BRAVE_API_KEY"</span>: <span class="val">"tu_api_key_aqui"</span>
+      }
+    }
+  }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     RESUMEN / QUICK REFERENCE
+════════════════════════════════════════════ -->
+<section class="section" id="summary">
+  <div class="section-header">
+    <div class="section-icon">📋</div>
+    <h2>Guía de referencia rápida</h2>
+    <span class="tag">Resumen</span>
+  </div>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="icon">🧩</div>
+      <h4>Skills</h4>
+      <p>Capacidades declarativas registradas antes de la conversación. Claude las invoca automáticamente.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🔧</div>
+      <h4>Tools</h4>
+      <p>Funciones dinámicas con JSON Schema. Claude decide cuándo llamarlas según el contexto.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">⌨️</div>
+      <h4>Commands</h4>
+      <p>Instrucciones <code>/slash</code> que activan comportamientos predefinidos sin descripción natural.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🪝</div>
+      <h4>Hooks</h4>
+      <p>Callbacks en puntos del ciclo de vida: PreToolUse, PostToolUse, PreTurn, Stop.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🤖</div>
+      <h4>Agents</h4>
+      <p>Claude en bucle autónomo: percibe → razona → actúa → repite hasta completar la tarea.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🧬</div>
+      <h4>Sub-Agents</h4>
+      <p>Agentes especializados lanzados por un orquestador. Pueden ejecutarse en paralelo.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🧪</div>
+      <h4>Harness</h4>
+      <p>Marco de pruebas que ejecuta agentes de forma controlada y verifica sus salidas.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🔌</div>
+      <h4>MCP</h4>
+      <p>Protocolo estándar para conectar Claude con cualquier fuente de datos o herramienta externa.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Construido con ✦ para explorar el ecosistema de
+  <a href="https://docs.anthropic.com" target="_blank" rel="noopener">Claude / Anthropic</a>.
+  Los ejemplos de código se pueden ejecutar directamente con
+  <code>pip install anthropic mcp</code>.
+</footer>
+
+<script>
+  /* ── Tab switcher ── */
+  function switchTab(btn, panelId) {
+    const card = btn.closest('.card-body');
+    card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(panelId).classList.add('active');
+  }
+
+  /* ── Copy to clipboard ── */
+  function copyCode(btn) {
+    const pre = btn.closest('.code-wrap').querySelector('pre');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = '✓ Copiado';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  /* ── Tool param toggle ── */
+  document.getElementById('tool-select').addEventListener('change', function () {
+    document.getElementById('weather-params').style.display = this.value === 'get_weather' ? '' : 'none';
+    document.getElementById('search-params').style.display  = this.value === 'search_web'  ? '' : 'none';
+  });
+
+  /* ── Tool demo ── */
+  function runToolDemo() {
+    const tool    = document.getElementById('tool-select').value;
+    const out     = document.getElementById('tool-output');
+    let result;
+    if (tool === 'get_weather') {
+      const city  = document.getElementById('tool-city').value || 'Ciudad';
+      const units = document.getElementById('tool-units').value;
+      const temp  = units === 'celsius' ? 22 : 72;
+      result = JSON.stringify({ tool_use: { name: 'get_weather', input: { city, units } },
+        tool_result: { temp, condition: 'soleado', humidity: 45, city } }, null, 2);
+    } else {
+      const query = document.getElementById('tool-query').value;
+      result = JSON.stringify({ tool_use: { name: 'search_web', input: { query } },
+        tool_result: { results: [`Artículo 1 sobre "${query}"`, `Artículo 2 sobre "${query}"`] }}, null, 2);
+    }
+    out.textContent = result;
+    out.classList.add('visible');
+  }
+
+  /* ── Command demo ── */
+  const CMD_RESPONSES = {
+    '/help':     '📋 Comandos disponibles:\n  /help     — muestra esta ayuda\n  /clear    — reinicia la conversación\n  /explain  — explica el último código\n  /refactor — refactoriza el último código',
+    '/clear':    '🔄 Conversación reiniciada. ¡Hola! ¿En qué puedo ayudarte?',
+    '/explain':  '📖 El bucle `for i in range(10): print(i)` itera desde 0 hasta 9 (inclusive) e imprime cada valor en una línea nueva.',
+    '/refactor': '✨ Código refactorizado:\n```python\nfor i in range(10):\n    print(i)\n```\nMejora: separar la expresión en dos líneas mejora la legibilidad.',
+  };
+  function runCommandDemo() {
+    const cmd = document.getElementById('cmd-select').value;
+    const out = document.getElementById('cmd-output');
+    out.textContent = CMD_RESPONSES[cmd] || 'Comando no reconocido.';
+    out.classList.add('visible');
+  }
+
+  /* ── Smooth scroll for nav badges ── */
+  document.querySelectorAll('a.badge[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+</body>
+</html>
