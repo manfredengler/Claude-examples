@@ -265,7 +265,7 @@
   <a href="#skills">          <span class="num c4">04</span> Skills</a>
   <a href="#mcp">             <span class="num c5">05</span> MCP Servers</a>
   <a href="#agents">          <span class="num c6">06</span> Agents</a>
-  <a href="#subagents">       <span class="num c7">07</span> Sub-agents</a>
+  <a href="#subagents">       <span class="num c7">07</span> Definir Agentes Custom</a>
   <a href="#harness">         <span class="num c8">08</span> Harness</a>
   <a href="#combined">        <span class="num c9">09</span> Todo junto</a>
 </nav>
@@ -719,190 +719,413 @@ await server.connect(transport);</code></pre>
       <span class="tag">Paralelismo</span>
     </div>
     <p>
-      Un <strong>agent</strong> es una instancia de Claude que corre de forma independiente, con su propio contexto y set de tools. El agente padre los lanza con el tool <code>Agent</code> y recibe su resultado como string cuando terminan.
+      Un <strong>agent</strong> es una instancia de Claude lanzada por el agente principal mediante el tool <code>Agent</code>. Corre con su propio contexto, tools y modelo. El padre lo lanza y recibe el resultado al terminar: un string con el último mensaje del agente, o un objeto <code>&#123; path, branch &#125;</code> si se usó <code>isolation: "worktree"</code>.
     </p>
 
     <div class="callout">
       <span class="icon">🧠</span>
       <div>
-        <strong>Cuándo usar agents:</strong> tareas largas que consumirían todo el contexto, trabajo paralelo independiente, o cuando quieres aislar una búsqueda para que no contamine el contexto principal.
+        <strong>Regla de oro:</strong> usa agents cuando la tarea consumiría demasiado contexto, cuando el trabajo es paralelizable, o cuando quieres aislar una búsqueda para que no contamine el hilo principal.
       </div>
     </div>
 
+    <!-- Parámetros -->
     <div class="card">
       <div class="card-header">
-        <span class="label">Lanzar 3 agentes en paralelo</span>
+        <span class="label">Parámetros del tool Agent</span>
       </div>
-      <pre><code class="language-typescript">// Esto ocurre internamente cuando Claude decide paralelizar:
-// Los 3 Agent calls van en el mismo mensaje → corren a la vez
+      <pre><code class="language-typescript">Agent({
+  // REQUERIDO — qué hace este agente (aparece en el log del padre)
+  description: "Migrar tests de Jest a Vitest",
 
-Agent({
-  description: "Analiza el módulo de auth",
-  prompt: `Lee todos los archivos en src/auth/.
-           Lista: funciones exportadas, dependencias externas,
-           posibles vulnerabilidades. Responde en <200 palabras.`
-});
+  // REQUERIDO — el mensaje completo que recibe el agente.
+  // Debe ser autosuficiente: el agente NO ve el contexto del padre.
+  prompt: `...`,
 
-Agent({
-  description: "Analiza el módulo de pagos",
-  prompt: `Lee todos los archivos en src/payments/.
-           Lista: funciones exportadas, dependencias externas,
-           posibles vulnerabilidades. Responde en <200 palabras.`
-});
+  // OPCIONAL — tipo de agente especializado (ver sección 07)
+  subagent_type: "Explore",
 
-Agent({
-  description: "Analiza el módulo de usuarios",
-  prompt: `Lee todos los archivos en src/users/.
-           Lista: funciones exportadas, dependencias externas,
-           posibles vulnerabilidades. Responde en <200 palabras.`
+  // OPCIONAL — modelo específico para esta tarea
+  // claude-opus-4-8 | claude-sonnet-4-6 | claude-haiku-4-5-20251001
+  model: "claude-opus-4-8",
+
+  // OPCIONAL — crea un git worktree aislado para el agente.
+  // Si hace cambios → devuelve { path, branch }
+  // Si no hace cambios → worktree se limpia automáticamente
+  isolation: "worktree",
+
+  // OPCIONAL — no bloquea al padre; notifica al terminar
+  run_in_background: true,
 });</code></pre>
     </div>
 
+    <!-- Ciclo de vida -->
     <div class="card">
       <div class="card-header">
-        <span class="label">Agente con worktree aislado</span>
+        <span class="label">Ciclo de vida de un agent</span>
       </div>
-      <pre><code class="language-typescript">// isolation: "worktree" crea una copia git aislada
-// El agente puede modificar archivos sin afectar la rama actual
+      <pre><code class="language-markdown">Padre llama Agent({prompt: "..."})
+  │
+  ├─ El sistema crea una sesión nueva con contexto vacío
+  ├─ El agente recibe solo el `prompt` como mensaje inicial
+  ├─ Tiene acceso a los tools configurados (o los del tipo)
+  ├─ Trabaja de forma autónoma hasta terminar su turno
+  │
+  └─ Devuelve al padre:
+       • string  → su último mensaje de texto (caso normal)
+       • { path, branch } → si se usó isolation: "worktree"
+                            y el agente hizo cambios en disco
 
-Agent({
+IMPORTANTE:
+  - El agente NO ve el historial de conversación del padre
+  - El padre NO ve los tool calls intermedios del agente
+  - Solo se comparte el resultado final</code></pre>
+    </div>
+
+    <!-- Paralelo -->
+    <div class="card">
+      <div class="card-header">
+        <span class="label">3 agentes en paralelo → resultado consolidado</span>
+      </div>
+      <pre><code class="language-typescript">// Clave: los 3 Agent calls van en el MISMO mensaje del padre
+// → corren simultáneamente, no secuencialmente
+
+const [authResult, paymentsResult, usersResult] = await Promise.all([
+  Agent({
+    description: "Auditar módulo auth",
+    prompt: `Eres un auditor de seguridad. Lee src/auth/ completo.
+    Lista todas las funciones exportadas, sus dependencias externas,
+    y cualquier riesgo de seguridad evidente. Máx 150 palabras.`,
+  }),
+  Agent({
+    description: "Auditar módulo payments",
+    prompt: `Eres un auditor de seguridad. Lee src/payments/ completo.
+    Lista todas las funciones exportadas, sus dependencias externas,
+    y cualquier riesgo de seguridad evidente. Máx 150 palabras.`,
+  }),
+  Agent({
+    description: "Auditar módulo users",
+    prompt: `Eres un auditor de seguridad. Lee src/users/ completo.
+    Lista todas las funciones exportadas, sus dependencias externas,
+    y cualquier riesgo de seguridad evidente. Máx 150 palabras.`,
+  }),
+]);
+
+// El padre consolida los 3 resultados en un reporte único</code></pre>
+    </div>
+
+    <!-- Worktree -->
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Worktree aislado — el agente trabaja en su propia rama</span>
+      </div>
+      <pre><code class="language-typescript">const result = await Agent({
   description: "Migrar tests a Vitest",
   isolation: "worktree",
-  prompt: `Migra todos los archivos *.test.ts de Jest a Vitest:
-  1. Reemplaza imports de jest por vitest
-  2. Actualiza mocks y spies a la API de Vitest
-  3. Corre los tests para verificar que pasan
-  4. Haz commit de los cambios
-  Rama base: main. Trabaja en todos los archivos de forma exhaustiva.`
-});</code></pre>
-    </div>
+  prompt: `Contexto: el proyecto usa Jest. Tu tarea es migrarlo a Vitest.
 
-    <div class="card">
-      <div class="card-header">
-        <span class="label">Agente en background</span>
-      </div>
-      <pre><code class="language-typescript">// run_in_background: true → no bloquea, se recibe notificación al terminar
+  Pasos:
+  1. Lee package.json para entender la config de Jest actual
+  2. Para cada archivo *.test.ts en src/:
+     a. Lee el archivo
+     b. Reemplaza imports: jest → vitest (describe, it, expect, vi)
+     c. Actualiza mocks: jest.fn() → vi.fn(), jest.mock() → vi.mock()
+     d. Usa Edit para aplicar los cambios
+  3. Actualiza package.json: reemplaza jest por vitest en scripts y deps
+  4. Corre: npx vitest run 2>&1 | tail -20
+  5. Si hay fallos, corrígelos antes de terminar
+  6. Haz commit: "migrate: Jest → Vitest"
 
-Agent({
-  description: "Generar documentación completa",
-  run_in_background: true,
-  prompt: `Genera JSDoc para todas las funciones públicas en src/.
-  Usa Read para leer cada archivo, Edit para añadir los comentarios.
-  Prioriza claridad sobre exhaustividad.`
+  Trabaja exhaustivamente en TODOS los archivos. No te saltes ninguno.`,
 });
 
-// El agente principal puede seguir trabajando mientras tanto</code></pre>
+// Si el agente hizo cambios:
+// result = { path: "/tmp/worktree-abc", branch: "agent/migrate-vitest" }
+// Si no hizo nada:
+// el worktree se limpia automáticamente</code></pre>
+    </div>
+
+    <!-- Background -->
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Background agent — no bloquea al padre</span>
+      </div>
+      <pre><code class="language-typescript">// Lanzar sin esperar el resultado
+Agent({
+  description: "Generar JSDoc completo",
+  run_in_background: true,
+  prompt: `Añade JSDoc a todas las funciones públicas en src/.
+  Para cada archivo: Read → analiza → Edit para añadir comentarios.
+  Una línea por función: qué hace, parámetros, retorno.
+  No documentes funciones privadas ni triviales (getters simples).`,
+});
+
+// El padre continúa trabajando...
+// Cuando el agente termina, llega una notificación automática
+// con su resultado — el padre puede actuar sobre él en ese momento.</code></pre>
+    </div>
+
+    <!-- Escribir un buen prompt -->
+    <div class="callout">
+      <span class="icon">✍️</span>
+      <div>
+        <strong>Cómo escribir el prompt de un agent:</strong> el agente empieza sin contexto. El prompt debe incluir: qué archivos leer, qué herramientas usar, qué output se espera, y restricciones importantes. Un prompt vago produce resultados vagos. Incluye rutas concretas, no "los archivos relevantes".
+      </div>
     </div>
   </section>
 
   <hr class="divider" />
 
   <!-- ═══════════════════════════════════════════════
-       07 · SUB-AGENTS
+       07 · DEFINIR AGENTES CUSTOM
   ════════════════════════════════════════════════ -->
   <section class="concept" id="subagents">
     <div class="concept-header">
       <span class="badge c7">07</span>
-      <h2>Sub-agents</h2>
+      <h2>Definir Agentes Custom</h2>
       <span class="tag">Especialización</span>
     </div>
     <p>
-      Los <strong>sub-agents</strong> son tipos de agente predefinidos con herramientas y comportamientos especializados. Se crean con <code>subagent_type</code> en el tool Agent. El sistema incluye tipos como <code>Explore</code>, <code>Plan</code>, <code>claude-code-guide</code>, entre otros.
+      Los agentes custom son archivos <code>.md</code> que definen un tipo de agente reutilizable: su system prompt, los tools que puede usar, y el modelo. Se guardan en <code>.claude/agents/</code> (proyecto) o <code>~/.claude/agents/</code> (global). Una vez definidos se invocan con <code>subagent_type: "nombre"</code>.
     </p>
 
+    <!-- Anatomía de un agente -->
     <div class="card">
       <div class="card-header">
-        <span class="label">Sub-agent Explore — búsqueda rápida</span>
+        <span class="label">Anatomía completa de un agente custom</span>
+        <span class="filename">.claude/agents/mi-agente.md</span>
       </div>
-      <pre><code class="language-typescript">// Explore: solo tiene herramientas de lectura (no escribe código)
-// Ideal para localizar archivos o entender la estructura
+      <pre><code class="language-markdown">---
+# REQUERIDO: identificador que se usa en subagent_type
+name: mi-agente
 
-Agent({
-  subagent_type: "Explore",
-  description: "Encontrar dónde se define la autenticación JWT",
-  prompt: `Busca en el codebase:
-  1. Dónde se genera el JWT (sign)
-  2. Dónde se valida (verify)
-  3. Qué middleware lo aplica
-  Búsqueda: "very thorough". Devuelve rutas + líneas.`
-});</code></pre>
+# REQUERIDO: descripción visible en el sistema (1-2 líneas)
+# El sistema usa esto para decidir cuándo sugerir este agente
+description: >
+  Especialista en X. Úsalo cuando necesites Y.
+  Devuelve Z en formato W.
+
+# OPCIONAL: lista de tools permitidos (omitir = todos los tools)
+# Built-in disponibles: Bash, Read, Write, Edit, Agent,
+#   WebSearch, WebFetch
+tools:
+  - Read
+  - Bash
+  - WebSearch
+
+# OPCIONAL: modelo para este agente
+# claude-opus-4-8   → más capaz, más lento
+# claude-sonnet-4-6 → balance (default)
+# claude-haiku-4-5-20251001 → más rápido, tareas simples
+model: claude-opus-4-8
+---
+
+Todo lo que está aquí es el SYSTEM PROMPT del agente.
+Define su personalidad, metodología, y formato de respuesta.
+
+El agente arranca leyendo este system prompt antes de recibir
+el `prompt` del padre. No ve ningún otro contexto.</code></pre>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <span class="label">Sub-agent Plan — diseño de arquitectura</span>
-      </div>
-      <pre><code class="language-typescript">// Plan: analiza el problema y devuelve un plan paso a paso
-// No escribe código, solo planifica
+    <!-- Proyecto vs Global -->
+    <div class="call-result">
+      <div class="card">
+        <div class="card-header">
+          <span class="label">Agente de proyecto</span>
+          <span class="filename">.claude/agents/</span>
+        </div>
+        <pre><code class="language-markdown">Disponible solo en este repositorio.
+Ideal para agentes específicos del dominio:
+revisores de reglas de negocio,
+generadores de código del stack
+concreto del proyecto, etc.
 
-Agent({
-  subagent_type: "Plan",
-  description: "Plan para migrar a PostgreSQL",
-  prompt: `Analiza el codebase actual (usa SQLite con better-sqlite3).
-  Diseña un plan detallado para migrar a PostgreSQL:
-  - Qué archivos cambiar y en qué orden
-  - Cómo manejar las migraciones de esquema
-  - Qué tests añadir para validar la migración
-  - Riesgos y cómo mitigarlos
-  Devuelve pasos numerados con archivos específicos.`
-});</code></pre>
+Se commitea al repo → todo el equipo
+lo tiene disponible.</code></pre>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="label">Agente global</span>
+          <span class="filename">~/.claude/agents/</span>
+        </div>
+        <pre><code class="language-markdown">Disponible en todos tus proyectos.
+Ideal para agentes de propósito general:
+tu code reviewer preferido, tu
+generador de tests, tu escritor
+de documentación.
+
+No se comparte con el equipo — es
+personal.</code></pre>
+      </div>
     </div>
 
+    <!-- Agentes built-in del sistema -->
     <div class="card">
       <div class="card-header">
-        <span class="label">Definir un sub-agent propio</span>
+        <span class="label">Agentes built-in del sistema</span>
+      </div>
+      <pre><code class="language-markdown">Explore
+  Tools: Bash(read-only), Read, WebFetch, WebSearch
+  Uso: localizar código, encontrar archivos, responder
+       preguntas sobre la estructura. NO escribe.
+  Ideal para: búsquedas amplias sin riesgo de modificar nada.
+
+Plan
+  Tools: todos excepto Edit/Write/Bash(mutating)
+  Uso: diseñar estrategias de implementación, identificar
+       archivos críticos, analizar trade-offs.
+  Ideal para: "¿cómo debería implementar X?" antes de hacerlo.
+
+general-purpose
+  Tools: todos (*)
+  Uso: catch-all para tareas que no encajan en otro tipo.
+  Es el default cuando no se especifica subagent_type.
+
+claude-code-guide
+  Tools: Bash, Read, WebFetch, WebSearch
+  Uso: preguntas sobre Claude Code CLI, API, SDK, hooks,
+       MCP servers, comandos, configuración.</code></pre>
+    </div>
+
+    <!-- 3 ejemplos de agentes útiles -->
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Ejemplo 1 — Agente revisor de código</span>
         <span class="filename">.claude/agents/code-reviewer.md</span>
       </div>
       <pre><code class="language-markdown">---
 name: code-reviewer
 description: >
-  Revisa código buscando bugs de correctitud y oportunidades de
-  simplificación. Devuelve hallazgos priorizados por severidad.
+  Revisa código buscando bugs reales y oportunidades de simplificación.
+  Devuelve hallazgos priorizados. No escribe código.
 tools:
   - Read
   - Bash
-  - WebSearch
 model: claude-opus-4-8
 ---
 
-Eres un code reviewer senior. Tu objetivo es encontrar:
-1. Bugs reales (no hipotéticos)
-2. Código que puede simplificarse sin perder claridad
-3. Patrones que violan principios SOLID
+Eres un senior engineer revisando código de producción.
 
-Para cada hallazgo: archivo:línea · severidad (high/med/low) · descripción · fix sugerido.
-Sé conciso. Omite hallazgos de baja confianza.</code></pre>
+SOLO reportas hallazgos con alta confianza:
+- Bugs concretos (null pointer, race condition, error swallowed)
+- Código que viola una invariante del sistema
+- Simplificaciones evidentes (duplicación clara, abstracción prematura)
+
+Para cada hallazgo: `archivo:línea | severidad | descripción | fix`
+Severidad: HIGH (bug que causa error) · MED (deuda técnica) · LOW (nitpick)
+
+Omite: sugerencias de estilo, preferencias personales, "considera usar X".
+Sé directo. Si no hay nada real que reportar, di "LGTM".</code></pre>
     </div>
 
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Ejemplo 2 — Agente generador de tests</span>
+        <span class="filename">.claude/agents/test-writer.md</span>
+      </div>
+      <pre><code class="language-markdown">---
+name: test-writer
+description: >
+  Genera tests unitarios y de integración para funciones dadas.
+  Usa el framework de tests del proyecto (detecta automáticamente).
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+model: claude-sonnet-4-6
+---
+
+Antes de escribir cualquier test:
+1. Lee el archivo que contiene la función a testear
+2. Lee un test existente del proyecto para entender el estilo y framework
+3. Detecta el runner: Jest, Vitest, Mocha (busca en package.json)
+
+Al escribir tests:
+- Golden path primero, luego edge cases
+- Un `describe` por función, un `it` por comportamiento
+- Nombres en español: "debería retornar X cuando Y"
+- Sin mocks salvo que sean estrictamente necesarios
+- Siempre corre los tests al final: si fallan, corrígelos
+
+Output: el archivo de tests creado y el resultado de correrlos.</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Ejemplo 3 — Agente de investigación web</span>
+        <span class="filename">~/.claude/agents/researcher.md</span>
+      </div>
+      <pre><code class="language-markdown">---
+name: researcher
+description: >
+  Investiga un tema técnico con múltiples fuentes, verifica claims
+  contradictorios y entrega un reporte citado. Úsalo para preguntas
+  que requieren evidencia externa, no solo conocimiento del modelo.
+tools:
+  - WebSearch
+  - WebFetch
+model: claude-opus-4-8
+---
+
+Eres un investigador técnico riguroso.
+
+Metodología:
+1. Planifica 3-5 queries de búsqueda distintas para el tema
+2. Ejecuta las búsquedas, anota las fuentes más relevantes
+3. Fetchea las páginas con más contenido sustantivo
+4. Identifica afirmaciones contradictorias entre fuentes
+5. Si hay contradicción, busca una tercera fuente que desempate
+
+Formato del reporte:
+- Resumen ejecutivo (3 líneas)
+- Hallazgos principales (bullets con citas)
+- Puntos de controversia o incertidumbre
+- Fuentes consultadas (URLs)</code></pre>
+    </div>
+
+    <!-- Usar un agente custom -->
     <div class="call-result">
       <div class="card">
         <div class="card-header">
-          <span class="label">Usar el sub-agent custom</span>
+          <span class="label">Invocar el agente custom</span>
         </div>
-        <pre><code class="language-typescript">Agent({
+        <pre><code class="language-typescript">// El padre invoca por nombre exacto del frontmatter
+Agent({
   subagent_type: "code-reviewer",
   description: "Review del módulo de auth",
-  prompt: `Revisa src/auth/*.ts.
-  Enfócate en: manejo de errores,
-  validación de inputs, y uso correcto
-  de async/await.`
+  prompt: `Revisa src/auth/*.ts en profundidad.
+  El contexto: este módulo maneja autenticación JWT
+  con refresh tokens. Enfócate especialmente en:
+  - Manejo de tokens expirados
+  - Validación de firma
+  - Gestión de sesiones concurrentes`,
 });</code></pre>
       </div>
       <div class="card">
         <div class="card-header">
-          <span class="label">Resultado del sub-agent</span>
+          <span class="label">Output del agente</span>
         </div>
-        <pre><code class="language-markdown">**HIGH** src/auth/jwt.ts:42
-Unhandled promise rejection en verify().
-Fix: wrap en try/catch o usa .catch()
+        <pre><code class="language-markdown">src/auth/jwt.ts:42 | HIGH
+verify() sin try/catch — un JWT malformado
+lanza excepción no controlada al caller.
+Fix: envolver en try/catch, retornar null.
 
-**MED** src/auth/middleware.ts:18
-req.user asignado sin type guard.
-Fix: validar con zod antes de asignar
+src/auth/session.ts:88 | MED
+refreshToken no invalida el token anterior
+al emitir uno nuevo — posible replay attack.
+Fix: añadir jti al blacklist antes de sign().
 
-**LOW** src/auth/session.ts:91
-Lógica duplicada con token.ts:34.
-Fix: extraer a validateToken()</code></pre>
+src/auth/middleware.ts:31 | LOW
+req.user tipado como `any`. Fix: usar
+interfaz AuthUser con campos mínimos.</code></pre>
+      </div>
+    </div>
+
+    <div class="callout">
+      <span class="icon">🔑</span>
+      <div>
+        <strong>Restricción de tools:</strong> si defines <code>tools: [Read, Bash]</code>, el agente solo puede usar esos dos. Esto es una garantía de seguridad: un agente de investigación sin <code>Edit</code> nunca puede modificar código por accidente, aunque el prompt se lo pida.
       </div>
     </div>
   </section>
