@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claude Concepts — De menos a más</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <style>
+    :root {
+      --bg:        #0d0d0f;
+      --bg2:       #141417;
+      --bg3:       #1c1c21;
+      --border:    #2a2a32;
+      --accent:    #cc785c;
+      --accent2:   #7c6af5;
+      --accent3:   #4ea8a8;
+      --text:      #e8e8f0;
+      --muted:     #888898;
+      --tag-h:     14px;
+      --radius:    10px;
+      --mono:      'JetBrains Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ─────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      width: 230px;
+      flex-shrink: 0;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      padding: 28px 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    nav .logo {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 20px;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 13.5px;
+      font-weight: 500;
+      border-left: 2px solid transparent;
+      transition: all .15s;
+    }
+    nav a:hover { color: var(--text); background: var(--bg3); }
+    nav a.active { color: var(--text); border-left-color: var(--accent); background: var(--bg3); }
+    nav .num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 5px;
+      font-size: 10px; font-weight: 700; font-family: var(--mono);
+      flex-shrink: 0;
+    }
+
+    /* ── MAIN ────────────────────────────────────── */
+    main {
+      flex: 1;
+      max-width: 860px;
+      padding: 60px 48px 120px;
+      overflow: hidden;
+    }
+
+    .hero {
+      margin-bottom: 64px;
+    }
+    .hero h1 {
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.65;
+      max-width: 560px;
+    }
+
+    /* ── SECTION ─────────────────────────────────── */
+    .concept {
+      margin-bottom: 72px;
+      scroll-margin-top: 32px;
+    }
+    .concept-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 8px;
+      font-size: 13px; font-weight: 700; font-family: var(--mono);
+      flex-shrink: 0;
+    }
+    .concept-header h2 {
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .concept-header .tag {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .concept > p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    /* ── CARDS ───────────────────────────────────── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg3);
+    }
+    .card-header .label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .05em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .card-header .filename {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent3);
+    }
+    .card pre {
+      margin: 0 !important;
+      border-radius: 0 !important;
+      font-size: 13px !important;
+      line-height: 1.6 !important;
+    }
+    .card pre code { font-family: var(--mono) !important; }
+
+    /* ── CALL-RESULT ─────────────────────────────── */
+    .call-result {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 720px) { .call-result { grid-template-columns: 1fr; } }
+
+    /* ── FLOW ────────────────────────────────────── */
+    .flow {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 24px 0;
+    }
+    .flow-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+    }
+    .arrow { color: var(--muted); font-size: 16px; }
+
+    /* ── CALLOUT ─────────────────────────────────── */
+    .callout {
+      display: flex;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .callout .icon { font-size: 18px; flex-shrink: 0; }
+    .callout strong { color: var(--text); }
+
+    /* ── DIVIDER ─────────────────────────────────── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 56px 0;
+    }
+
+    /* concept colors */
+    .c1 { background: #cc785c22; color: #cc785c; }
+    .c2 { background: #7c6af522; color: #7c6af5; }
+    .c3 { background: #4ea8a822; color: #4ea8a8; }
+    .c4 { background: #6ab04c22; color: #6ab04c; }
+    .c5 { background: #f0932b22; color: #f0932b; }
+    .c6 { background: #eb4d4b22; color: #eb4d4b; }
+    .c7 { background: #be2edd22; color: #be2edd; }
+    .c8 { background: #e84cce22; color: #e84cce; }
+    .c9 { background: #30336b22; color: #a29bfe; }
+
+    .f1 { border-color: #cc785c55; color: #cc785c; background: #cc785c11; }
+    .f2 { border-color: #7c6af555; color: #7c6af5; background: #7c6af511; }
+    .f3 { border-color: #4ea8a855; color: #4ea8a8; background: #4ea8a811; }
+    .f4 { border-color: #6ab04c55; color: #6ab04c; background: #6ab04c11; }
+    .f5 { border-color: #f0932b55; color: #f0932b; background: #f0932b11; }
+    .f6 { border-color: #eb4d4b55; color: #eb4d4b; background: #eb4d4b11; }
+    .f7 { border-color: #be2edd55; color: #be2edd; background: #be2edd11; }
+    .f8 { border-color: #e84cce55; color: #e84cce; background: #e84cce11; }
+  </style>
+</head>
+<body>
+
+<!-- ══ NAV ══════════════════════════════════════════════ -->
+<nav>
+  <div class="logo">Claude Concepts</div>
+  <a href="#tools"     class="active"><span class="num c1">01</span> Tools</a>
+  <a href="#commands">        <span class="num c2">02</span> Commands</a>
+  <a href="#hooks">           <span class="num c3">03</span> Hooks</a>
+  <a href="#skills">          <span class="num c4">04</span> Skills</a>
+  <a href="#mcp">             <span class="num c5">05</span> MCP Servers</a>
+  <a href="#agents">          <span class="num c6">06</span> Agents</a>
+  <a href="#subagents">       <span class="num c7">07</span> Sub-agents</a>
+  <a href="#harness">         <span class="num c8">08</span> Harness</a>
+  <a href="#combined">        <span class="num c9">09</span> Todo junto</a>
+</nav>
+
+<!-- ══ MAIN ═════════════════════════════════════════════ -->
+<main>
+
+  <div class="hero">
+    <h1>Claude Concepts<br /><span>De menos a más</span></h1>
+    <p>Cada concepto del ecosistema Claude Code explicado con ejemplos reales y ejecutables. Empezamos con las primitivas básicas y terminamos combinándolas todas.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       01 · TOOLS
+  ════════════════════════════════════════════════ -->
+  <section class="concept" id="tools">
+    <div class="concept-header">
+      <span class="badge c1">01</span>
+      <h2>Tools</h2>
+      <span class="tag">Primitiva</span>
+    </div>
+    <p>
+      Los <strong>tools</strong> son las acciones concretas que Claude puede ejecutar: leer un archivo, correr bash, editar código, buscar en la web. Sin tools, Claude solo puede devolver texto. Con tools, puede actuar sobre el sistema.
+    </p>
+
+    <div class="callout">
+      <span class="icon">💡</span>
+      <div>
+        <strong>Analogía:</strong> Si Claude es un programador, los tools son su teclado, terminal y editor. Los built-in tools (<code>Read</code>, <code>Bash</code>, <code>Edit</code>, <code>Write</code>) siempre están disponibles. Tools adicionales vienen por MCP o por el <code>Agent</code> SDK.
+      </div>
+    </div>
+
+    <div class="call-result">
+      <div class="card">
+        <div class="card-header">
+          <span class="label">Claude llama al tool</span>
+        </div>
+        <pre><code class="language-json">{
+  "tool": "Bash",
+  "input": {
+    "command": "git log --oneline -5",
+    "description": "Last 5 commits"
+  }
+}</code></pre>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="label">El sistema responde</span>
+        </div>
+        <pre><code class="language-bash">a3f1c2e fix: null pointer in auth
+9b2e451 feat: add retry logic
+c77f830 docs: update README
+4d1a9f2 refactor: split services
+8eae001 init: project scaffold</code></pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Ejemplo real — tool Edit</span>
+        <span class="filename">src/config.ts</span>
+      </div>
+      <pre><code class="language-typescript">// Claude recibe: "cambia el timeout a 30 segundos"
+// Claude llama a Edit con old_string / new_string:
+
+{
+  "tool": "Edit",
+  "input": {
+    "file_path": "/src/config.ts",
+    "old_string": "const TIMEOUT_MS = 5000;",
+    "new_string": "const TIMEOUT_MS = 30_000;"
+  }
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Tools built-in más usados</span>
+      </div>
+      <pre><code class="language-markdown">Read      → leer archivos (con offset/limit para archivos grandes)
+Write     → crear archivos nuevos o reescritura completa
+Edit      → reemplazar string exacto dentro de un archivo
+Bash      → ejecutar comandos shell (git, npm, curl…)
+Agent     → lanzar un sub-agente con su propio contexto
+WebSearch → buscar en internet (requiere permiso)
+WebFetch  → leer una URL concreta</code></pre>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ═══════════════════════════════════════════════
+       02 · COMMANDS
+  ════════════════════════════════════════════════ -->
+  <section class="concept" id="commands">
+    <div class="concept-header">
+      <span class="badge c2">02</span>
+      <h2>Commands</h2>
+      <span class="tag">Built-in + Custom</span>
+    </div>
+    <p>
+      Los <strong>commands</strong> son shortcuts prefijados con <code>/</code> que se pueden escribir en el chat. Los built-in vienen con Claude Code. Los custom se crean como archivos <code>.md</code> en <code>.claude/commands/</code>.
+    </p>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Comandos built-in principales</span>
+      </div>
+      <pre><code class="language-bash">/help          # lista de comandos disponibles
+/clear         # limpia el contexto de la conversación
+/compact       # compacta el historial para ahorrar tokens
+/memory        # edita el archivo CLAUDE.md del proyecto
+/config        # abre la configuración interactiva
+/doctor        # diagnóstico del entorno Claude Code
+/cost          # muestra el costo de tokens de la sesión
+/review        # code review del diff actual (skill)
+/init          # genera CLAUDE.md inicial para el repo</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Crear un comando custom</span>
+        <span class="filename">.claude/commands/fix-ts.md</span>
+      </div>
+      <pre><code class="language-markdown">---
+description: "Corrige todos los errores de TypeScript en el proyecto"
+---
+
+Corre `npx tsc --noEmit` y captura la salida.
+Por cada error encontrado:
+1. Lee el archivo afectado con el tool Read
+2. Entiende el contexto del error
+3. Aplica la corrección mínima con Edit
+4. Vuelve a correr tsc para verificar que se resolvió
+
+Al final lista cuántos errores había y cuántos se corrigieron.</code></pre>
+    </div>
+
+    <div class="callout">
+      <span class="icon">⚡</span>
+      <div>
+        Una vez creado el archivo, el comando <code>/fix-ts</code> queda disponible en cualquier sesión dentro de ese proyecto. Puede recibir argumentos: <code>/fix-ts src/auth.ts</code>.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Comando con argumento $ARGUMENTS</span>
+        <span class="filename">.claude/commands/explain.md</span>
+      </div>
+      <pre><code class="language-markdown">---
+description: "Explica una función o archivo en detalle"
+---
+
+Lee el archivo o función indicada: $ARGUMENTS
+
+Explica:
+- Qué hace (propósito de alto nivel)
+- Cómo funciona (flujo paso a paso)
+- Por qué está escrito así (decisiones de diseño no obvias)
+- Posibles puntos de mejora
+
+Sé conciso. Usa ejemplos cuando ayuden.</code></pre>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ═══════════════════════════════════════════════
+       03 · HOOKS
+  ════════════════════════════════════════════════ -->
+  <section class="concept" id="hooks">
+    <div class="concept-header">
+      <span class="badge c3">03</span>
+      <h2>Hooks</h2>
+      <span class="tag">Automatización</span>
+    </div>
+    <p>
+      Los <strong>hooks</strong> son comandos shell que el <em>harness</em> ejecuta automáticamente en respuesta a eventos de Claude: antes de usar un tool, después de usarlo, al iniciar sesión, etc. Claude no los controla — los ejecuta el sistema.
+    </p>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Eventos disponibles</span>
+      </div>
+      <pre><code class="language-markdown">PreToolUse    → antes de que Claude ejecute cualquier tool
+PostToolUse   → después de que un tool termina
+SessionStart  → al inicio de cada sesión
+Stop          → cuando Claude termina su turno</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Hook: lint automático tras cada Edit</span>
+        <span class="filename">.claude/settings.json</span>
+      </div>
+      <pre><code class="language-json">{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx eslint --fix \"${TOOL_INPUT_FILE_PATH}\" 2>&1 | head -20"
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Hook: log de todos los comandos Bash</span>
+        <span class="filename">.claude/settings.json</span>
+      </div>
+      <pre><code class="language-json">{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"[$(date -u +%H:%M:%S)] BASH: $TOOL_INPUT_COMMAND\" >> .claude/bash-audit.log"
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Hook SessionStart: setup del entorno</span>
+        <span class="filename">.claude/settings.json</span>
+      </div>
+      <pre><code class="language-json">{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npm install --silent && echo 'deps ready'"
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+    </div>
+
+    <div class="callout">
+      <span class="icon">🔒</span>
+      <div>
+        <strong>Seguridad:</strong> los hooks pueden bloquear un tool devolviendo exit code distinto de 0. Útil para prevenir <code>rm -rf</code> o push a main sin confirmación.
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ═══════════════════════════════════════════════
+       04 · SKILLS
+  ════════════════════════════════════════════════ -->
+  <section class="concept" id="skills">
+    <div class="concept-header">
+      <span class="badge c4">04</span>
+      <h2>Skills</h2>
+      <span class="tag">Web / Avanzado</span>
+    </div>
+    <p>
+      Las <strong>skills</strong> son comandos slash con inteligencia integrada. A diferencia de los commands simples (texto plano), las skills tienen frontmatter que las registra en el sistema, pueden incluir lógica condicional y se usan especialmente en Claude Code on the Web.
+    </p>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Skill: security review</span>
+        <span class="filename">.claude/skills/security-review.md</span>
+      </div>
+      <pre><code class="language-markdown">---
+description: >
+  Revisa el diff actual buscando vulnerabilidades de seguridad
+  (OWASP Top 10, secrets expuestos, inyecciones, etc.)
+trigger: manual
+---
+
+## Pasos
+
+1. Corre `git diff HEAD` para ver los cambios actuales
+2. Para cada archivo modificado:
+   - Lee el archivo completo con Read
+   - Analiza el diff en contexto
+3. Busca específicamente:
+   - SQL/command injection
+   - Secrets o credenciales hardcodeadas
+   - XSS en templates HTML
+   - Dependencias con CVEs conocidos (`npm audit`)
+   - Permisos excesivos en archivos
+4. Por cada hallazgo: indica archivo, línea, severidad y fix sugerido
+5. Termina con un resumen: PASS / WARN / FAIL</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Skill: deploy con validaciones</span>
+        <span class="filename">.claude/skills/deploy.md</span>
+      </div>
+      <pre><code class="language-markdown">---
+description: "Deploy a producción con checklist automático"
+trigger: manual
+---
+
+Antes de deployar, valida que:
+- [ ] Tests pasan: `npm test`
+- [ ] Build compila: `npm run build`
+- [ ] No hay secrets en el código: `git log -p | grep -i "api_key\|password\|secret"`
+- [ ] La rama es `main` o `release/*`
+
+Si todo pasa, ejecuta el deploy: `npm run deploy`
+Si algún check falla, detente y reporta qué falló.</code></pre>
+    </div>
+
+    <div class="callout">
+      <span class="icon">🎯</span>
+      <div>
+        <strong>Skills vs Commands:</strong> Los commands son instrucciones. Las skills son procedimientos con contexto, validaciones y flujo de decisión. Se invocan igual (<code>/deploy</code>), pero tienen más poder expresivo.
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ═══════════════════════════════════════════════
+       05 · MCP SERVERS
+  ════════════════════════════════════════════════ -->
+  <section class="concept" id="mcp">
+    <div class="concept-header">
+      <span class="badge c5">05</span>
+      <h2>MCP Servers</h2>
+      <span class="tag">Extensibilidad</span>
+    </div>
+    <p>
+      <strong>MCP (Model Context Protocol)</strong> permite conectar Claude a sistemas externos como GitHub, bases de datos, Slack, APIs internas. Cada servidor MCP expone tools adicionales que Claude puede llamar igual que los built-in.
+    </p>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Configurar MCP en el proyecto</span>
+        <span class="filename">.claude/settings.json</span>
+      </div>
+      <pre><code class="language-json">{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"],
+      "env": {
+        "POSTGRES_CONNECTION_STRING": "${DATABASE_URL}"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
+    }
+  }
+}</code></pre>
+    </div>
+
+    <div class="call-result">
+      <div class="card">
+        <div class="card-header">
+          <span class="label">Claude llama tool MCP GitHub</span>
+        </div>
+        <pre><code class="language-json">{
+  "tool": "mcp__github__create_pull_request",
+  "input": {
+    "owner": "acme",
+    "repo": "api",
+    "title": "fix: auth timeout",
+    "head": "feature/fix-auth",
+    "base": "main",
+    "body": "Increases timeout to 30s"
+  }
+}</code></pre>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="label">Respuesta del servidor MCP</span>
+        </div>
+        <pre><code class="language-json">{
+  "number": 142,
+  "url": "https://github.com/acme/api/pull/142",
+  "state": "open",
+  "created_at": "2026-06-02T10:30:00Z"
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Crear un MCP server propio (Node.js)</span>
+        <span class="filename">mcp-server/index.ts</span>
+      </div>
+      <pre><code class="language-typescript">import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
+
+const server = new McpServer({ name: "mi-empresa", version: "1.0.0" });
+
+// Tool personalizado: consultar métricas internas
+server.tool(
+  "get_metrics",
+  "Obtiene métricas de rendimiento del sistema",
+  {
+    service: z.string().describe("nombre del servicio"),
+    range: z.enum(["1h", "24h", "7d"]).default("1h"),
+  },
+  async ({ service, range }) => {
+    const data = await fetchInternalMetrics(service, range);
+    return {
+      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+const transport = new StdioServerTransport();
+await server.connect(transport);</code></pre>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ═══════════════════════════════════════════════
+       06 · AGENTS
+  ════════════════════════════════════════════════ -->
+  <section class="concept" id="agents">
+    <div class="concept-header">
+      <span class="badge c6">06</span>
+      <h2>Agents</h2>
+      <span class="tag">Paralelismo</span>
+    </div>
+    <p>
+      Un <strong>agent</strong> es una instancia de Claude que corre de forma independiente, con su propio contexto y set de tools. El agente padre los lanza con el tool <code>Agent</code> y recibe su resultado como string cuando terminan.
+    </p>
+
+    <div class="callout">
+      <span class="icon">🧠</span>
+      <div>
+        <strong>Cuándo usar agents:</strong> tareas largas que consumirían todo el contexto, trabajo paralelo independiente, o cuando quieres aislar una búsqueda para que no contamine el contexto principal.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Lanzar 3 agentes en paralelo</span>
+      </div>
+      <pre><code class="language-typescript">// Esto ocurre internamente cuando Claude decide paralelizar:
+// Los 3 Agent calls van en el mismo mensaje → corren a la vez
+
+Agent({
+  description: "Analiza el módulo de auth",
+  prompt: `Lee todos los archivos en src/auth/.
+           Lista: funciones exportadas, dependencias externas,
+           posibles vulnerabilidades. Responde en <200 palabras.`
+});
+
+Agent({
+  description: "Analiza el módulo de pagos",
+  prompt: `Lee todos los archivos en src/payments/.
+           Lista: funciones exportadas, dependencias externas,
+           posibles vulnerabilidades. Responde en <200 palabras.`
+});
+
+Agent({
+  description: "Analiza el módulo de usuarios",
+  prompt: `Lee todos los archivos en src/users/.
+           Lista: funciones exportadas, dependencias externas,
+           posibles vulnerabilidades. Responde en <200 palabras.`
+});</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Agente con worktree aislado</span>
+      </div>
+      <pre><code class="language-typescript">// isolation: "worktree" crea una copia git aislada
+// El agente puede modificar archivos sin afectar la rama actual
+
+Agent({
+  description: "Migrar tests a Vitest",
+  isolation: "worktree",
+  prompt: `Migra todos los archivos *.test.ts de Jest a Vitest:
+  1. Reemplaza imports de jest por vitest
+  2. Actualiza mocks y spies a la API de Vitest
+  3. Corre los tests para verificar que pasan
+  4. Haz commit de los cambios
+  Rama base: main. Trabaja en todos los archivos de forma exhaustiva.`
+});</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Agente en background</span>
+      </div>
+      <pre><code class="language-typescript">// run_in_background: true → no bloquea, se recibe notificación al terminar
+
+Agent({
+  description: "Generar documentación completa",
+  run_in_background: true,
+  prompt: `Genera JSDoc para todas las funciones públicas en src/.
+  Usa Read para leer cada archivo, Edit para añadir los comentarios.
+  Prioriza claridad sobre exhaustividad.`
+});
+
+// El agente principal puede seguir trabajando mientras tanto</code></pre>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ═══════════════════════════════════════════════
+       07 · SUB-AGENTS
+  ════════════════════════════════════════════════ -->
+  <section class="concept" id="subagents">
+    <div class="concept-header">
+      <span class="badge c7">07</span>
+      <h2>Sub-agents</h2>
+      <span class="tag">Especialización</span>
+    </div>
+    <p>
+      Los <strong>sub-agents</strong> son tipos de agente predefinidos con herramientas y comportamientos especializados. Se crean con <code>subagent_type</code> en el tool Agent. El sistema incluye tipos como <code>Explore</code>, <code>Plan</code>, <code>claude-code-guide</code>, entre otros.
+    </p>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Sub-agent Explore — búsqueda rápida</span>
+      </div>
+      <pre><code class="language-typescript">// Explore: solo tiene herramientas de lectura (no escribe código)
+// Ideal para localizar archivos o entender la estructura
+
+Agent({
+  subagent_type: "Explore",
+  description: "Encontrar dónde se define la autenticación JWT",
+  prompt: `Busca en el codebase:
+  1. Dónde se genera el JWT (sign)
+  2. Dónde se valida (verify)
+  3. Qué middleware lo aplica
+  Búsqueda: "very thorough". Devuelve rutas + líneas.`
+});</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Sub-agent Plan — diseño de arquitectura</span>
+      </div>
+      <pre><code class="language-typescript">// Plan: analiza el problema y devuelve un plan paso a paso
+// No escribe código, solo planifica
+
+Agent({
+  subagent_type: "Plan",
+  description: "Plan para migrar a PostgreSQL",
+  prompt: `Analiza el codebase actual (usa SQLite con better-sqlite3).
+  Diseña un plan detallado para migrar a PostgreSQL:
+  - Qué archivos cambiar y en qué orden
+  - Cómo manejar las migraciones de esquema
+  - Qué tests añadir para validar la migración
+  - Riesgos y cómo mitigarlos
+  Devuelve pasos numerados con archivos específicos.`
+});</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Definir un sub-agent propio</span>
+        <span class="filename">.claude/agents/code-reviewer.md</span>
+      </div>
+      <pre><code class="language-markdown">---
+name: code-reviewer
+description: >
+  Revisa código buscando bugs de correctitud y oportunidades de
+  simplificación. Devuelve hallazgos priorizados por severidad.
+tools:
+  - Read
+  - Bash
+  - WebSearch
+model: claude-opus-4-8
+---
+
+Eres un code reviewer senior. Tu objetivo es encontrar:
+1. Bugs reales (no hipotéticos)
+2. Código que puede simplificarse sin perder claridad
+3. Patrones que violan principios SOLID
+
+Para cada hallazgo: archivo:línea · severidad (high/med/low) · descripción · fix sugerido.
+Sé conciso. Omite hallazgos de baja confianza.</code></pre>
+    </div>
+
+    <div class="call-result">
+      <div class="card">
+        <div class="card-header">
+          <span class="label">Usar el sub-agent custom</span>
+        </div>
+        <pre><code class="language-typescript">Agent({
+  subagent_type: "code-reviewer",
+  description: "Review del módulo de auth",
+  prompt: `Revisa src/auth/*.ts.
+  Enfócate en: manejo de errores,
+  validación de inputs, y uso correcto
+  de async/await.`
+});</code></pre>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="label">Resultado del sub-agent</span>
+        </div>
+        <pre><code class="language-markdown">**HIGH** src/auth/jwt.ts:42
+Unhandled promise rejection en verify().
+Fix: wrap en try/catch o usa .catch()
+
+**MED** src/auth/middleware.ts:18
+req.user asignado sin type guard.
+Fix: validar con zod antes de asignar
+
+**LOW** src/auth/session.ts:91
+Lógica duplicada con token.ts:34.
+Fix: extraer a validateToken()</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ═══════════════════════════════════════════════
+       08 · HARNESS
+  ════════════════════════════════════════════════ -->
+  <section class="concept" id="harness">
+    <div class="concept-header">
+      <span class="badge c8">08</span>
+      <h2>Harness</h2>
+      <span class="tag">Infraestructura</span>
+    </div>
+    <p>
+      El <strong>harness</strong> es el entorno de ejecución administrado que corre Claude Code on the Web. Es el contenedor efímero, el sistema de hooks, los permisos, las variables de entorno y la sesión completa. Tú configuras el harness; él ejecuta los hooks, gestiona el ciclo de vida y da a Claude acceso al repo.
+    </p>
+
+    <div class="flow">
+      <span class="flow-item f1">Trigger (PR / web / API)</span>
+      <span class="arrow">→</span>
+      <span class="flow-item f2">Harness spawns container</span>
+      <span class="arrow">→</span>
+      <span class="flow-item f3">SessionStart hooks</span>
+      <span class="arrow">→</span>
+      <span class="flow-item f4">Claude actúa</span>
+      <span class="arrow">→</span>
+      <span class="flow-item f5">Per-tool hooks</span>
+      <span class="arrow">→</span>
+      <span class="flow-item f6">Stop hook + push</span>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">Configuración completa del harness</span>
+        <span class="filename">.claude/settings.json</span>
+      </div>
+      <pre><code class="language-json">{
+  "model": "claude-opus-4-8",
+
+  "env": {
+    "NODE_ENV": "test",
+    "LOG_LEVEL": "debug"
+  },
+
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(git *)",
+      "Read(**)",
+      "Edit(**)",
+      "Write(**)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(git push --force *)"
+    ]
+  },
+
+  "hooks": {
+    "SessionStart": [{
+      "hooks": [{
+        "type": "command",
+        "command": "npm ci --silent && echo '✓ deps instaladas'"
+      }]
+    }],
+
+    "PostToolUse": [{
+      "matcher": "Edit|Write",
+      "hooks": [{
+        "type": "command",
+        "command": "npx tsc --noEmit 2>&1 | tail -5"
+      }]
+    }],
+
+    "Stop": [{
+      "hooks": [{
+        "type": "command",
+        "command": "npm test -- --passWithNoTests 2>&1 | tail -10"
+      }]
+    }]
+  }
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">CLAUDE.md — memoria persistente del proyecto</span>
+        <span class="filename">CLAUDE.md</span>
+      </div>
+      <pre><code class="language-markdown"># Proyecto API
+
+## Stack
+- Node.js 20 + TypeScript 5.4
+- PostgreSQL (via prisma)
+- Vitest para tests
+
+## Comandos frecuentes
+- `npm run dev`    → servidor local en :3000
+- `npm test`       → tests unitarios
+- `npm run db:migrate` → migraciones pendientes
+
+## Reglas importantes
+- Nunca commitear a main directamente
+- Todos los endpoints deben tener tests de integración
+- Usar Zod para validar inputs externos
+
+## Contexto de arquitectura
+El servicio de auth vive en src/auth/ y usa JWT RS256.
+Las claves están en AWS Secrets Manager, no en .env.</code></pre>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ═══════════════════════════════════════════════
+       09 · COMBINED
+  ════════════════════════════════════════════════ -->
+  <section class="concept" id="combined">
+    <div class="concept-header">
+      <span class="badge c9">09</span>
+      <h2>Todo junto</h2>
+      <span class="tag">Sistema completo</span>
+    </div>
+    <p>
+      Un sistema real combina todos los conceptos. Aquí: un flujo de <em>CI automático</em> donde un trigger de GitHub lanza un harness que usa hooks, MCP tools, sub-agents paralelos, y un skill final para generar el reporte.
+    </p>
+
+    <div class="flow">
+      <span class="flow-item f1">GitHub PR abierto</span>
+      <span class="arrow">→</span>
+      <span class="flow-item f2">Harness + SessionStart hook</span>
+      <span class="arrow">→</span>
+      <span class="flow-item f3">Skill /review lanzada</span>
+      <span class="arrow">→</span>
+      <span class="flow-item f4">3 sub-agents paralelos</span>
+      <span class="arrow">→</span>
+      <span class="flow-item f5">MCP GitHub comenta PR</span>
+      <span class="arrow">→</span>
+      <span class="flow-item f6">Stop hook notifica Slack</span>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">1. Harness + hooks</span>
+        <span class="filename">.claude/settings.json</span>
+      </div>
+      <pre><code class="language-json">{
+  "model": "claude-opus-4-8",
+
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}" }
+    }
+  },
+
+  "hooks": {
+    "SessionStart": [{
+      "hooks": [{
+        "type": "command",
+        "command": "npm ci --silent && npx tsc --noEmit && echo 'entorno listo'"
+      }]
+    }],
+    "Stop": [{
+      "hooks": [{
+        "type": "command",
+        "command": "curl -s -X POST $SLACK_WEBHOOK -d '{\"text\":\"Review de PR completado\"}'"
+      }]
+    }]
+  }
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">2. Skill /review orquesta todo</span>
+        <span class="filename">.claude/skills/review.md</span>
+      </div>
+      <pre><code class="language-markdown">---
+description: "Review completo de un PR: código, tests y seguridad"
+---
+
+Primero obtén el diff del PR actual con `git diff main...HEAD`.
+
+Lanza estos 3 sub-agents EN PARALELO (mismo mensaje):
+
+**Agent 1 — Code quality**:
+  subagent_type: Explore
+  "Analiza el diff para calidad de código: complejidad, duplicación,
+   nombres confusos. Lista hallazgos por archivo:línea."
+
+**Agent 2 — Test coverage**:
+  subagent_type: Explore
+  "Revisa si los cambios tienen tests adecuados. Para cada función
+   nueva o modificada, verifica si existe un test. Lista gaps."
+
+**Agent 3 — Security**:
+  subagent_type: code-reviewer
+  "Revisa el diff buscando vulnerabilidades OWASP Top 10,
+   secrets expuestos, inputs sin validar."
+
+Cuando los 3 terminen, consolida sus resultados en un único
+comentario de PR usando el tool mcp__github__add_issue_comment:
+- Sección por categoría
+- Emoji por severidad (🔴 high, 🟡 med, 🟢 low)
+- Tabla resumen al final</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">3. Sub-agent custom: code-reviewer</span>
+        <span class="filename">.claude/agents/code-reviewer.md</span>
+      </div>
+      <pre><code class="language-markdown">---
+name: code-reviewer
+description: "Especialista en seguridad de código"
+tools: [Read, Bash, WebSearch]
+model: claude-opus-4-8
+---
+
+Eres un experto en seguridad de aplicaciones web.
+Analiza código buscando: inyecciones, auth bypass, IDOR,
+secrets hardcodeados, dependencias con CVEs.
+Responde solo con hallazgos reales y concretos, priorizados.</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="label">4. Resultado: comentario en el PR</span>
+      </div>
+      <pre><code class="language-markdown">## Review automático — PR #142
+
+### 🔴 Seguridad (1)
+| Archivo | Línea | Hallazgo |
+|---|---|---|
+| src/api/users.ts | 88 | SQL construido con string concat — usa parámetros |
+
+### 🟡 Calidad (2)
+| Archivo | Línea | Hallazgo |
+|---|---|---|
+| src/auth/session.ts | 34 | Función >50 líneas, considerar split |
+| src/utils/format.ts | 12 | Duplica lógica de src/utils/date.ts:8 |
+
+### 🟢 Tests (1)
+| Archivo | Función | Estado |
+|---|---|---|
+| src/api/users.ts | updateUser() | Sin test de caso error 404 |
+
+**Resumen:** 1 high · 2 medium · 1 low — requiere fix antes de merge</code></pre>
+    </div>
+
+    <div class="callout">
+      <span class="icon">🏗️</span>
+      <div>
+        <strong>Arquitectura del sistema:</strong> El harness gestiona el ciclo de vida. Los hooks automatizan el entorno y las notificaciones. La skill orquesta el flujo. Los sub-agents trabajan en paralelo con contexto limpio. El MCP publica los resultados. Cada pieza tiene una sola responsabilidad.
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<script>
+  // Syntax highlighting
+  document.addEventListener('DOMContentLoaded', () => {
+    hljs.highlightAll();
+
+    // Active nav item on scroll
+    const sections = document.querySelectorAll('.concept');
+    const navLinks = document.querySelectorAll('nav a');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navLinks.forEach(l => l.classList.remove('active'));
+          const link = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+
+    sections.forEach(s => observer.observe(s));
+  });
+</script>
+</body>
+</html>
