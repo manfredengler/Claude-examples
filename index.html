@@ -106,6 +106,66 @@
       max-width: 560px;
     }
 
+    /* ── MOBILE ──────────────────────────────────── */
+    @media (max-width: 640px) {
+      body { flex-direction: column; }
+
+      nav {
+        position: sticky;
+        top: 0;
+        height: auto;
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        gap: 0;
+        z-index: 100;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      nav::-webkit-scrollbar { display: none; }
+
+      nav .logo {
+        display: none;
+      }
+
+      nav a {
+        flex-direction: column;
+        gap: 4px;
+        padding: 10px 14px;
+        font-size: 10px;
+        white-space: nowrap;
+        border-left: none;
+        border-bottom: 2px solid transparent;
+        flex-shrink: 0;
+      }
+      nav a.active {
+        border-left-color: transparent;
+        border-bottom-color: var(--accent);
+        background: var(--bg3);
+      }
+      nav .num {
+        width: 24px;
+        height: 24px;
+        font-size: 9px;
+      }
+
+      main {
+        padding: 32px 18px 80px;
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      .hero { margin-bottom: 40px; }
+      .hero h1 { font-size: 26px; }
+
+      .card pre { font-size: 11.5px !important; }
+    }
+
     /* ── SECTION ─────────────────────────────────── */
     .concept {
       margin-bottom: 72px;
